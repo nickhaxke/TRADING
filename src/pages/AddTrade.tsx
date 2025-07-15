@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTrades } from '../hooks/useTrades';
-import { Calculator, Save, X } from 'lucide-react';
+import { Calculator, Save, X, Camera } from 'lucide-react';
+import { LoadingSpinner } from '../components/LoadingSpinner';
+import { ImageUpload } from '../components/ImageUpload';
 
 export const AddTrade: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -15,9 +17,11 @@ export const AddTrade: React.FC = () => {
     outcome: '',
     reason: '',
     notes: '',
-    screenshot_url: ''
+    screenshot_url: '',
+    screenshot_file: null as File | null
   });
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   
   const { addTrade } = useTrades();
@@ -46,7 +50,7 @@ export const AddTrade: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
     setError('');
 
     try {
@@ -68,7 +72,7 @@ export const AddTrade: React.FC = () => {
     } catch (err: any) {
       setError(err.message || 'Failed to add trade');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -80,6 +84,20 @@ export const AddTrade: React.FC = () => {
     }));
   };
 
+  const handleImageChange = (url: string) => {
+    setFormData(prev => ({
+      ...prev,
+      screenshot_url: url
+    }));
+  };
+
+  const handleImageRemove = () => {
+    setFormData(prev => ({
+      ...prev,
+      screenshot_url: ''
+    }));
+  };
+
   const commonPairs = [
     'EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD',
     'EURJPY', 'GBPJPY', 'EURGBP', 'AUDJPY', 'EURAUD', 'CHFJPY', 'GBPAUD',
@@ -88,6 +106,16 @@ export const AddTrade: React.FC = () => {
   ];
 
   return (
+    <>
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 flex flex-col items-center space-y-4">
+            <LoadingSpinner size="lg" />
+            <p className="text-gray-900 dark:text-white font-medium">Loading trade form...</p>
+          </div>
+        </div>
+      )}
+      
     <div className="max-w-2xl mx-auto">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
         <div className="flex items-center justify-between mb-6">
@@ -281,18 +309,19 @@ export const AddTrade: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="screenshot_url" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Screenshot URL
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <Camera className="inline h-4 w-4 mr-1" />
+              Trade Screenshot
             </label>
-            <input
-              type="url"
-              id="screenshot_url"
-              name="screenshot_url"
-              placeholder="https://example.com/screenshot.png"
+            <ImageUpload
               value={formData.screenshot_url}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+              onChange={handleImageChange}
+              onRemove={handleImageRemove}
+              disabled={submitting}
             />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Upload a screenshot of your trade setup or chart analysis
+            </p>
           </div>
 
           <div className="flex justify-end space-x-4">
@@ -305,19 +334,20 @@ export const AddTrade: React.FC = () => {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={submitting}
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
             >
-              {loading ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              {submitting ? (
+                <LoadingSpinner size="sm" color="border-white" className="mr-2" />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Add Trade
+              {submitting ? 'Adding Trade...' : 'Add Trade'}
             </button>
           </div>
         </form>
       </div>
     </div>
+    </>
   );
 };

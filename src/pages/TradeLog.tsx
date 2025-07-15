@@ -9,11 +9,13 @@ import {
   Plus,
   ChevronUp,
   ChevronDown,
-  ExternalLink
+  ExternalLink,
+  Image as ImageIcon
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -30,6 +32,8 @@ export const TradeLog: React.FC = () => {
   const [filterOutcome, setFilterOutcome] = useState<'all' | 'win' | 'loss'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [exporting, setExporting] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const filteredAndSortedTrades = useMemo(() => {
     let filtered = trades.filter(trade => {
@@ -98,6 +102,10 @@ export const TradeLog: React.FC = () => {
   };
 
   const exportToPDF = () => {
+    setExporting(true);
+    
+    // Add a small delay to show the loading state
+    setTimeout(() => {
     const doc = new jsPDF();
     
     // Title
@@ -140,27 +148,63 @@ export const TradeLog: React.FC = () => {
     });
     
     doc.save('trading-journal.pdf');
+      setExporting(false);
+    }, 1000);
+  };
+
+  const handleImagePreview = (imageUrl: string) => {
+    setImagePreview(imageUrl);
+  };
+
+  const closeImagePreview = () => {
+    setImagePreview(null);
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <LoadingSpinner size="lg" />
+        <p className="text-gray-600 dark:text-gray-400">Loading your trades...</p>
       </div>
     );
   }
 
   return (
+    <>
+      {/* Image Preview Modal */}
+      {imagePreview && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="relative max-w-4xl max-h-full">
+            <button
+              onClick={closeImagePreview}
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 transition-colors"
+            >
+              <X className="h-8 w-8" />
+            </button>
+            <img
+              src={imagePreview}
+              alt="Trade screenshot"
+              className="max-w-full max-h-full object-contain rounded-lg"
+            />
+          </div>
+        </div>
+      )}
+
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Trade Log</h1>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={exportToPDF}
+            disabled={exporting}
             className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            <Download className="h-4 w-4 mr-2" />
-            Export PDF
+            {exporting ? (
+              <LoadingSpinner size="sm" className="mr-2" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            {exporting ? 'Exporting...' : 'Export PDF'}
           </button>
           <Link
             to="/add-trade"
@@ -319,18 +363,18 @@ export const TradeLog: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div className="flex items-center space-x-2">
                           {trade.screenshot_url && (
-                            <a
-                              href={trade.screenshot_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:text-blue-500"
+                            <button
+                              onClick={() => handleImagePreview(trade.screenshot_url!)}
+                              className="text-blue-600 hover:text-blue-500 transition-colors"
+                              title="View screenshot"
                             >
-                              <ExternalLink className="h-4 w-4" />
-                            </a>
+                              <ImageIcon className="h-4 w-4" />
+                            </button>
                           )}
                           <button
                             onClick={() => handleDelete(trade.id)}
-                            className="text-red-600 hover:text-red-500"
+                            className="text-red-600 hover:text-red-500 transition-colors"
+                            title="Delete trade"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -413,5 +457,6 @@ export const TradeLog: React.FC = () => {
         )}
       </div>
     </div>
+    </>
   );
 };

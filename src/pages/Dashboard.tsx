@@ -2,14 +2,16 @@ import React from 'react';
 import { useTrades } from '../hooks/useTrades';
 import { TrendingUp, TrendingDown, Target, Activity, DollarSign, Award } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 export const Dashboard: React.FC = () => {
   const { trades, loading } = useTrades();
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <LoadingSpinner size="lg" />
+        <p className="text-gray-600 dark:text-gray-400">Loading your dashboard...</p>
       </div>
     );
   }
