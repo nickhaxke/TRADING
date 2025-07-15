@@ -92,16 +92,16 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           <img
             src={value}
             alt="Trade screenshot"
-            className="w-full h-48 object-cover rounded-lg border-2 border-gray-300 dark:border-gray-600"
+            className="w-full h-32 sm:h-48 object-cover rounded-lg border-2 border-gray-300 dark:border-gray-600"
           />
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
             <button
               type="button"
               onClick={onRemove}
               disabled={disabled}
-              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 disabled:opacity-50"
+              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 sm:p-2 bg-red-600 text-white rounded-full hover:bg-red-700 disabled:opacity-50 touch-manipulation"
             >
-              <X className="h-4 w-4" />
+              <X className="h-3 w-3 sm:h-4 sm:w-4" />
             </button>
           </div>
         </div>
@@ -127,28 +127,29 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         onDragLeave={handleDragLeave}
         className={`
           relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200
+          sm:p-8 p-6
           ${dragActive 
             ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
             : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
           }
-          ${disabled || uploading ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}
+          ${disabled || uploading ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50 dark:hover:bg-gray-800 touch-manipulation'}
         `}
       >
         {uploading ? (
           <div className="flex flex-col items-center space-y-2">
-            <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+            <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 animate-spin" />
             <p className="text-sm text-gray-600 dark:text-gray-400">Uploading...</p>
           </div>
         ) : (
           <div className="flex flex-col items-center space-y-2">
             <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-full">
-              <ImageIcon className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+              <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600 dark:text-gray-400" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <p className="text-sm font-medium text-gray-900 dark:text-white text-center">
                 Click to upload or drag and drop
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
                 PNG, JPG, GIF up to 5MB
               </p>
             </div>
