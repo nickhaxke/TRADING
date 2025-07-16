@@ -16,6 +16,7 @@ import { Link } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import html2canvas from 'html2canvas';
 
 declare module 'jspdf' {
   interface jsPDF {
@@ -104,52 +105,166 @@ export const TradeLog: React.FC = () => {
   const exportToPDF = () => {
     setExporting(true);
     
-    // Add a small delay to show the loading state
-    setTimeout(() => {
-    const doc = new jsPDF();
+    setTimeout(async () => {
+      const doc = new jsPDF();
+      let yPosition = 22;
     
-    // Title
-    doc.setFontSize(20);
-    doc.text('Trading Journal Report', 14, 22);
+      // Title
+      doc.setFontSize(20);
+      doc.text('Trading Journal Report', 14, yPosition);
+      yPosition += 10;
     
-    // Date
-    doc.setFontSize(12);
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 32);
+      // Date
+      doc.setFontSize(12);
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 14, yPosition);
+      yPosition += 10;
     
-    // Summary stats
-    const totalTrades = trades.length;
-    const totalProfit = trades.reduce((sum, trade) => sum + trade.outcome, 0);
-    const winningTrades = trades.filter(trade => trade.outcome > 0).length;
-    const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+      // Summary stats
+      const totalTrades = trades.length;
+      const totalProfit = trades.reduce((sum, trade) => sum + trade.outcome, 0);
+      const winningTrades = trades.filter(trade => trade.outcome > 0).length;
+      const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
     
-    doc.text(`Total Trades: ${totalTrades}`, 14, 42);
-    doc.text(`Total Profit: $${totalProfit.toFixed(2)}`, 14, 50);
-    doc.text(`Win Rate: ${winRate.toFixed(1)}%`, 14, 58);
+      doc.text(`Total Trades: ${totalTrades}`, 14, yPosition);
+      yPosition += 8;
+      doc.text(`Total Profit: $${totalProfit.toFixed(2)}`, 14, yPosition);
+      yPosition += 8;
+      doc.text(`Win Rate: ${winRate.toFixed(1)}%`, 14, yPosition);
+      yPosition += 15;
     
-    // Table
-    const tableColumns = ['Date', 'Pair', 'Entry', 'SL', 'TP', 'RR', 'Outcome', 'Reason'];
-    const tableRows = filteredAndSortedTrades.map(trade => [
-      new Date(trade.date).toLocaleDateString(),
-      trade.pair,
-      trade.entry_price.toFixed(5),
-      trade.stop_loss.toFixed(5),
-      trade.take_profit.toFixed(5),
-      trade.rr_ratio.toFixed(2),
-      `$${trade.outcome.toFixed(2)}`,
-      trade.reason
-    ]);
+      // Process each trade with details
+      for (let i = 0; i < filteredAndSortedTrades.length; i++) {
+        const trade = filteredAndSortedTrades[i];
+        
+        // Check if we need a new page
+        if (yPosition > 250) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        // Trade header
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text(`Trade ${i + 1}: ${trade.pair}`, 14, yPosition);
+        yPosition += 8;
+        
+        // Trade details
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Date: ${new Date(trade.date).toLocaleDateString()}`, 14, yPosition);
+        doc.text(`Entry: ${trade.entry_price.toFixed(5)}`, 80, yPosition);
+        doc.text(`Outcome: $${trade.outcome.toFixed(2)}`, 140, yPosition);
+        yPosition += 6;
+        
+        doc.text(`Stop Loss: ${trade.stop_loss.toFixed(5)}`, 14, yPosition);
+        doc.text(`Take Profit: ${trade.take_profit.toFixed(5)}`, 80, yPosition);
+        doc.text(`RR Ratio: ${trade.rr_ratio.toFixed(2)}`, 140, yPosition);
+        yPosition += 6;
+        
+        if (trade.lot_size) {
+          doc.text(`Lot Size: ${trade.lot_size}`, 14, yPosition);
+          yPosition += 6;
+        }
+        
+        // Reason
+        doc.text(`Reason: ${trade.reason}`, 14, yPosition);
+        yPosition += 6;
+        
+        // Notes
+        if (trade.notes) {
+          doc.text(`Notes: ${trade.notes}`, 14, yPosition);
+          yPosition += 6;
+        }
+        
+        // Add image if available
+        if (trade.screenshot_url) {
+          try {
+            // Create a temporary image element
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            await new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+              img.src = trade.screenshot_url!;
+            });
+            
+            // Calculate image dimensions to fit in PDF
+            const maxWidth = 180;
+            const maxHeight = 80;
+            let { width, height } = img;
+            
+            if (width > maxWidth) {
+              height = (height * maxWidth) / width;
+              width = maxWidth;
+            }
+            
+            if (height > maxHeight) {
+              width = (width * maxHeight) / height;
+              height = maxHeight;
+            }
+            
+            // Check if image fits on current page
+            if (yPosition + height > 280) {
+              doc.addPage();
+              yPosition = 20;
+            }
+            
+            // Add image to PDF
+            doc.addImage(img, 'JPEG', 14, yPosition, width, height);
+            yPosition += height + 5;
+            
+          } catch (error) {
+            console.error('Error adding image to PDF:', error);
+            doc.text(`Screenshot: ${trade.screenshot_url}`, 14, yPosition);
+            yPosition += 6;
+          }
+        }
+        
+        // Add separator line
+        doc.setDrawColor(200, 200, 200);
+        doc.line(14, yPosition, 196, yPosition);
+        yPosition += 10;
+      }
+      
+      // Summary table on last page
+      if (filteredAndSortedTrades.length > 0) {
+        doc.addPage();
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        doc.text('Trade Summary', 14, 20);
+        
+        const tableColumns = ['Date', 'Pair', 'Entry', 'SL', 'TP', 'RR', 'Outcome'];
+        const tableRows = filteredAndSortedTrades.map(trade => [
+          new Date(trade.date).toLocaleDateString(),
+          trade.pair,
+          trade.entry_price.toFixed(5),
+          trade.stop_loss.toFixed(5),
+          trade.take_profit.toFixed(5),
+          trade.rr_ratio.toFixed(2),
+          `$${trade.outcome.toFixed(2)}`
+        ]);
+        
+        doc.autoTable({
+          head: [tableColumns],
+          body: tableRows,
+          startY: 30,
+          styles: { fontSize: 8 },
+          columnStyles: { 
+            0: { cellWidth: 25 },
+            1: { cellWidth: 20 },
+            2: { cellWidth: 25 },
+            3: { cellWidth: 25 },
+            4: { cellWidth: 25 },
+            5: { cellWidth: 20 },
+            6: { cellWidth: 25 }
+          }
+        });
+      }
     
-    doc.autoTable({
-      head: [tableColumns],
-      body: tableRows,
-      startY: 70,
-      styles: { fontSize: 8 },
-      columnStyles: { 7: { cellWidth: 40 } }
-    });
-    
-    doc.save('trading-journal.pdf');
+      doc.save(`trading-journal-${new Date().toISOString().split('T')[0]}.pdf`);
       setExporting(false);
-    }, 1000);
+    }, 500);
   };
 
   const handleImagePreview = (imageUrl: string) => {

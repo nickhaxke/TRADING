@@ -1,161 +1,103 @@
-import React, { useState, useRef } from 'react';
-import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, X, Image as ImageIcon, ExternalLink } from 'lucide-react';
 
-interface ImageUploadProps {
+interface ImageUrlInputProps {
   value?: string;
   onChange: (url: string) => void;
   onRemove: () => void;
   disabled?: boolean;
 }
 
-export const ImageUpload: React.FC<ImageUploadProps> = ({
+export const ImageUrlInput: React.FC<ImageUrlInputProps> = ({
   value,
   onChange,
   onRemove,
   disabled = false
 }) => {
-  const [uploading, setUploading] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [inputValue, setInputValue] = useState(value || '');
+  const [isValidUrl, setIsValidUrl] = useState(false);
 
-  const handleFileSelect = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      alert('File size must be less than 5MB');
-      return;
-    }
-
-    setUploading(true);
-    
+  const validateUrl = (url: string) => {
     try {
-      // Convert file to base64 for demo purposes
-      // In a real app, you'd upload to a service like Supabase Storage
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        onChange(result);
-        setUploading(false);
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      console.error('Upload failed:', error);
-      alert('Upload failed. Please try again.');
-      setUploading(false);
+      new URL(url);
+      return url.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) !== null;
+    } catch {
+      return false;
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragActive(false);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value;
+    setInputValue(url);
     
-    if (disabled || uploading) return;
-    
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      handleFileSelect(files[0]);
+    if (url && validateUrl(url)) {
+      setIsValidUrl(true);
+      onChange(url);
+    } else {
+      setIsValidUrl(false);
+      if (!url) onChange('');
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (!disabled && !uploading) {
-      setDragActive(true);
-    }
+  const handleRemove = () => {
+    setInputValue('');
+    setIsValidUrl(false);
+    onRemove();
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragActive(false);
-  };
-
-  const handleClick = () => {
-    if (!disabled && !uploading) {
-      fileInputRef.current?.click();
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileSelect(file);
-    }
-  };
-
-  if (value) {
-    return (
+  return (
+    <div className="space-y-3">
       <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Link className="h-4 w-4 text-gray-400" />
+        </div>
+        <input
+          type="url"
+          value={inputValue}
+          onChange={handleInputChange}
+          disabled={disabled}
+          placeholder="https://example.com/image.jpg"
+          className="w-full pl-10 pr-10 py-2.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-base sm:text-sm"
+        />
+        {inputValue && (
+          <button
+            type="button"
+            onClick={handleRemove}
+            disabled={disabled}
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {inputValue && !isValidUrl && (
+        <p className="text-sm text-red-600 dark:text-red-400">
+          Please enter a valid image URL (jpg, png, gif, webp, svg)
+        </p>
+      )}
+
+      {value && isValidUrl && (
         <div className="relative group">
           <img
             src={value}
-            alt="Trade screenshot"
+            alt="Trade screenshot preview"
             className="w-full h-32 sm:h-48 object-cover rounded-lg border-2 border-gray-300 dark:border-gray-600"
+            onError={() => setIsValidUrl(false)}
           />
-          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 rounded-lg flex items-center justify-center">
-            <button
-              type="button"
-              onClick={onRemove}
-              disabled={disabled}
-              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 sm:p-2 bg-red-600 text-white rounded-full hover:bg-red-700 disabled:opacity-50 touch-manipulation"
+          <div className="absolute top-2 right-2">
+            <a
+              href={value}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-1.5 bg-black bg-opacity-50 text-white rounded-full hover:bg-opacity-70 transition-all duration-200"
+              title="Open image in new tab"
             >
-              <X className="h-3 w-3 sm:h-4 sm:w-4" />
-            </button>
+              <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4" />
+            </a>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        className="hidden"
-        disabled={disabled || uploading}
-      />
-      
-      <div
-        onClick={handleClick}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        className={`
-          relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200
-          sm:p-8 p-6
-          ${dragActive 
-            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-          }
-          ${disabled || uploading ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50 dark:hover:bg-gray-800 touch-manipulation'}
-        `}
-      >
-        {uploading ? (
-          <div className="flex flex-col items-center space-y-2">
-            <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 animate-spin" />
-            <p className="text-sm text-gray-600 dark:text-gray-400">Uploading...</p>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center space-y-2">
-            <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-full">
-              <ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600 dark:text-gray-400" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white text-center">
-                Click to upload or drag and drop
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                PNG, JPG, GIF up to 5MB
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 };

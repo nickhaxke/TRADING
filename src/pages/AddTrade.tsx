@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTrades } from '../hooks/useTrades';
 import { Calculator, Save, X, Camera } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
-import { ImageUpload } from '../components/ImageUpload';
+import { ImageUrlInput } from '../components/ImageUpload';
 
 export const AddTrade: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -311,16 +311,16 @@ export const AddTrade: React.FC = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               <Camera className="inline h-4 w-4 mr-1" />
-              Trade Screenshot
+              Trade Screenshot URL
             </label>
-            <ImageUpload
+            <ImageUrlInput
               value={formData.screenshot_url}
               onChange={handleImageChange}
               onRemove={handleImageRemove}
               disabled={submitting}
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Upload a screenshot of your trade setup or chart analysis
+              Enter a URL to an image of your trade setup or chart analysis
             </p>
           </div>
 
