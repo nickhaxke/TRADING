@@ -176,43 +176,93 @@ export const TradeLog: React.FC = () => {
           // Add image if available
           if (trade.screenshot_url) {
             try {
-              // Create a temporary image element
-              const img = new Image();
-              img.crossOrigin = 'anonymous';
+              // Try to fetch image as blob first (better CORS handling)
+              let imageDataUrl: string | null = null;
               
-              await new Promise((resolve, reject) => {
-                img.onload = resolve;
-                img.onerror = reject;
-                img.src = trade.screenshot_url!;
-              });
-              
-              // Calculate image dimensions to fit in PDF
-              const maxWidth = 180;
-              const maxHeight = 80;
-              let { width, height } = img;
-              
-              if (width > maxWidth) {
-                height = (height * maxWidth) / width;
-                width = maxWidth;
+              try {
+                const response = await fetch(trade.screenshot_url, {
+                  mode: 'cors',
+                  credentials: 'omit'
+                });
+                
+                if (response.ok) {
+                  const blob = await response.blob();
+                  
+                  // Convert blob to data URL
+                  imageDataUrl = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                  });
+                }
+              } catch (fetchError) {
+                console.warn('Fetch method failed, trying Image element:', fetchError);
+                
+                // Fallback to Image element method
+                try {
+                  const img = new Image();
+                  img.crossOrigin = 'anonymous';
+                  
+                  await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.src = trade.screenshot_url!;
+                  });
+                  
+                  // Convert image to canvas then to data URL
+                  const canvas = document.createElement('canvas');
+                  const ctx = canvas.getContext('2d');
+                  canvas.width = img.width;
+                  canvas.height = img.height;
+                  ctx?.drawImage(img, 0, 0);
+                  imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                } catch (imgError) {
+                  console.warn('Image element method also failed:', imgError);
+                }
               }
               
-              if (height > maxHeight) {
-                width = (width * maxHeight) / height;
-                height = maxHeight;
+              if (imageDataUrl) {
+                // Create temporary image to get dimensions
+                const tempImg = new Image();
+                await new Promise((resolve) => {
+                  tempImg.onload = resolve;
+                  tempImg.src = imageDataUrl!;
+                });
+                
+                // Calculate image dimensions to fit in PDF
+                const maxWidth = 180;
+                const maxHeight = 80;
+                let { width, height } = tempImg;
+                
+                if (width > maxWidth) {
+                  height = (height * maxWidth) / width;
+                  width = maxWidth;
+                }
+                
+                if (height > maxHeight) {
+                  width = (width * maxHeight) / height;
+                  height = maxHeight;
+                }
+                
+                // Check if image fits on current page
+                if (yPosition + height > 280) {
+                  doc.addPage();
+                  yPosition = 20;
+                }
+                
+                // Add image to PDF
+                doc.addImage(imageDataUrl, 'JPEG', 14, yPosition, width, height);
+                yPosition += height + 5;
+              } else {
+                // If image loading failed, show URL as text
+                console.warn('Could not load image for PDF, showing URL instead:', trade.screenshot_url);
+                doc.text(`Screenshot: ${trade.screenshot_url}`, 14, yPosition);
+                yPosition += 6;
               }
-              
-              // Check if image fits on current page
-              if (yPosition + height > 280) {
-                doc.addPage();
-                yPosition = 20;
-              }
-              
-              // Add image to PDF
-              doc.addImage(img, 'JPEG', 14, yPosition, width, height);
-              yPosition += height + 5;
               
             } catch (error) {
-              console.error('Error adding image to PDF:', error);
+              console.warn('Error processing image for PDF:', error);
               doc.text(`Screenshot: ${trade.screenshot_url}`, 14, yPosition);
               yPosition += 6;
             }
