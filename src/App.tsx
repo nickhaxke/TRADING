@@ -8,6 +8,7 @@ import { AuthPage } from './pages/Auth';
 import { Dashboard } from './pages/Dashboard';
 import { AddTrade } from './pages/AddTrade';
 import { TradeLog } from './pages/TradeLog';
+import { EditTrade } from './pages/EditTrade';
 
 function App() {
   return (
@@ -35,6 +36,13 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <TradeLog />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/edit-trade/:id" element={
+            <ProtectedRoute>
+              <Layout>
+                <EditTrade />
               </Layout>
             </ProtectedRoute>
           } />

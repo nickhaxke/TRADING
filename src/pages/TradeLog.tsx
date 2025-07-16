@@ -490,6 +490,13 @@ export const TradeLog: React.FC = () => {
                               <ImageIcon className="h-4 w-4" />
                             </button>
                           )}
+                          <Link
+                            to={`/edit-trade/${trade.id}`}
+                            className="text-green-600 hover:text-green-500 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
+                            title="Edit trade"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Link>
                           <button
                             onClick={() => handleDelete(trade.id)}
                             className="text-red-600 hover:text-red-500 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"

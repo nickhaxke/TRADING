@@ -20,7 +20,13 @@ export const ImageUrlInput: React.FC<ImageUrlInputProps> = ({
   const validateUrl = (url: string) => {
     try {
       new URL(url);
-      return url.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) !== null;
+      // More flexible image URL validation
+      // Check for common image extensions or known image hosting domains
+      const imageExtensions = /\.(jpeg|jpg|gif|png|webp|svg|bmp|tiff)$/i;
+      const imageHosts = /(tradingview\.com|imgur\.com|postimg\.cc|imageupload\.io|prnt\.sc|gyazo\.com|lightshot\.com|snipboard\.io|imgbb\.com|ibb\.co|tinypic\.com|photobucket\.com|flickr\.com|googleusercontent\.com|amazonaws\.com|cloudinary\.com|unsplash\.com|pexels\.com)/i;
+      
+      // Allow if it has image extension or is from known image hosting service
+      return imageExtensions.test(url) || imageHosts.test(url) || url.includes('image') || url.includes('chart') || url.includes('screenshot');
     } catch {
       return false;
     }
@@ -73,7 +79,7 @@ export const ImageUrlInput: React.FC<ImageUrlInputProps> = ({
 
       {inputValue && !isValidUrl && (
         <p className="text-sm text-red-600 dark:text-red-400">
-          Please enter a valid image URL (jpg, png, gif, webp, svg)
+          Please enter a valid image URL or link from image hosting services
         </p>
       )}
 
