@@ -14,6 +14,7 @@ export type Database = {
           user_id: string;
           date: string;
           pair: string;
+          trade_type: string;
           entry_price: number;
           stop_loss: number;
           take_profit: number;
@@ -31,6 +32,7 @@ export type Database = {
           user_id: string;
           date: string;
           pair: string;
+          trade_type?: string;
           entry_price: number;
           stop_loss: number;
           take_profit: number;
@@ -48,6 +50,7 @@ export type Database = {
           user_id?: string;
           date?: string;
           pair?: string;
+          trade_type?: string;
           entry_price?: number;
           stop_loss?: number;
           take_profit?: number;

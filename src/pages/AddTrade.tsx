@@ -9,6 +9,7 @@ export const AddTrade: React.FC = () => {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     pair: '',
+    trade_type: 'buy',
     entry_price: '',
     stop_loss: '',
     take_profit: '',
@@ -29,15 +30,25 @@ export const AddTrade: React.FC = () => {
 
   // Auto-calculate RR ratio when entry, SL, or TP changes
   useEffect(() => {
-    const { entry_price, stop_loss, take_profit } = formData;
-    if (entry_price && stop_loss && take_profit) {
+    const { entry_price, stop_loss, take_profit, trade_type } = formData;
+    if (entry_price && stop_loss && take_profit && trade_type) {
       const entry = parseFloat(entry_price);
       const sl = parseFloat(stop_loss);
       const tp = parseFloat(take_profit);
       
       if (entry > 0 && sl > 0 && tp > 0) {
-        const risk = Math.abs(entry - sl);
-        const reward = Math.abs(tp - entry);
+        let risk, reward;
+        
+        if (trade_type === 'buy') {
+          // For buy trades: risk is entry - SL, reward is TP - entry
+          risk = Math.abs(entry - sl);
+          reward = Math.abs(tp - entry);
+        } else {
+          // For sell trades: risk is SL - entry, reward is entry - TP
+          risk = Math.abs(sl - entry);
+          reward = Math.abs(entry - tp);
+        }
+        
         const rrRatio = risk > 0 ? reward / risk : 0;
         
         setFormData(prev => ({
@@ -46,7 +57,7 @@ export const AddTrade: React.FC = () => {
         }));
       }
     }
-  }, [formData.entry_price, formData.stop_loss, formData.take_profit]);
+  }, [formData.entry_price, formData.stop_loss, formData.take_profit, formData.trade_type]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +68,7 @@ export const AddTrade: React.FC = () => {
       await addTrade({
         date: formData.date,
         pair: formData.pair,
+        trade_type: formData.trade_type,
         entry_price: parseFloat(formData.entry_price),
         stop_loss: parseFloat(formData.stop_loss),
         take_profit: parseFloat(formData.take_profit),
@@ -152,6 +164,23 @@ export const AddTrade: React.FC = () => {
             </div>
 
             <div>
+              <label htmlFor="trade_type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Trade Type *
+              </label>
+              <select
+                id="trade_type"
+                name="trade_type"
+                required
+                value={formData.trade_type}
+                onChange={handleChange}
+                className="w-full px-3 py-2.5 sm:py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-base sm:text-sm"
+              >
+                <option value="buy">Buy</option>
+                <option value="sell">Sell</option>
+              </select>
+            </div>
+
+            <div>
               <label htmlFor="pair" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Currency Pair *
               </label>
@@ -223,7 +252,7 @@ export const AddTrade: React.FC = () => {
 
             <div>
               <label htmlFor="rr_ratio" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                RR Ratio *
+                RR Ratio * (Auto-calculated)
               </label>
               <div className="relative">
                 <input
@@ -231,16 +260,20 @@ export const AddTrade: React.FC = () => {
                   id="rr_ratio"
                   name="rr_ratio"
                   required
+                  readOnly
                   step="0.01"
                   placeholder="2.50"
                   value={formData.rr_ratio}
                   onChange={handleChange}
-                  className="w-full px-3 py-2.5 sm:py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-base sm:text-sm"
+                  className="w-full px-3 py-2.5 sm:py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-base sm:text-sm bg-gray-50 dark:bg-gray-600"
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
                   <Calculator className="h-4 w-4 text-gray-400" />
                 </div>
               </div>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Automatically calculated based on trade type, entry, stop loss, and take profit
+              </p>
             </div>
 
             <div>
