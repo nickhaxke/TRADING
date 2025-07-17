@@ -36,20 +36,21 @@ export const useCompoundingChallenge = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
+      // First try to get existing settings
+      let { data, error } = await supabase
         .from('challenge_settings')
         .select('*')
         .eq('user_id', user.id)
         .single();
       
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        throw error;
+      if (data) {
+        // Settings found, use them
+        setChallengeSettings(data);
+        return;
       }
       
-      if (data) {
-        setChallengeSettings(data);
-      } else {
-        // Create default settings
+      // No settings found (PGRST116 error), create default settings
+      if (error && error.code === 'PGRST116') {
         const defaultSettings = {
           user_id: user.id,
           starting_amount: 100,
@@ -57,17 +58,43 @@ export const useCompoundingChallenge = () => {
           reward_ratio: 2
         };
         
-        const { data: newSettings, error: createError } = await supabase
-          .from('challenge_settings')
-          .insert([defaultSettings])
-          .select()
-          .single();
-        
-        if (createError) throw createError;
-        setChallengeSettings(newSettings);
+        try {
+          // Try to insert new settings
+          const { data: newSettings, error: createError } = await supabase
+            .from('challenge_settings')
+            .insert([defaultSettings])
+            .select()
+            .single();
+          
+          if (createError) {
+            // Check if it's a duplicate key error (race condition)
+            if (createError.code === '23505') {
+              // Another process created settings, fetch them
+              const { data: existingSettings, error: fetchError } = await supabase
+                .from('challenge_settings')
+                .select('*')
+                .eq('user_id', user.id)
+                .single();
+              
+              if (fetchError) throw fetchError;
+              setChallengeSettings(existingSettings);
+            } else {
+              throw createError;
+            }
+          } else {
+            setChallengeSettings(newSettings);
+          }
+        } catch (insertError) {
+          console.error('Error creating challenge settings:', insertError);
+          throw insertError;
+        }
+      } else if (error) {
+        // Other unexpected error
+        throw error;
       }
     } catch (error) {
       console.error('Error fetching challenge settings:', error);
+      throw error;
     }
   };
 
