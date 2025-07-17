@@ -31,6 +31,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/dashboard', label: 'Dashboard', icon: BarChart3 },
     { path: '/trades', label: 'Trade Log', icon: FileText },
     { path: '/add-trade', label: 'Add Trade', icon: PlusCircle },
+    { path: '/compounding-challenge', label: 'Challenge', icon: TrendingUp },
   ];
 
   const closeMobileMenu = () => setMobileMenuOpen(false);

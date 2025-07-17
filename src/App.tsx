@@ -9,6 +9,7 @@ import { Dashboard } from './pages/Dashboard';
 import { AddTrade } from './pages/AddTrade';
 import { TradeLog } from './pages/TradeLog';
 import { EditTrade } from './pages/EditTrade';
+import { CompoundingChallenge } from './pages/CompoundingChallenge';
 
 function App() {
   return (
@@ -43,6 +44,13 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <EditTrade />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/compounding-challenge" element={
+            <ProtectedRoute>
+              <Layout>
+                <CompoundingChallenge />
               </Layout>
             </ProtectedRoute>
           } />

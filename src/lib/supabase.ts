@@ -64,6 +64,47 @@ export type Database = {
           updated_at?: string;
         };
       };
+      challenge_trades: {
+        Row: {
+          id: string;
+          user_id: string;
+          trade_number: number;
+          starting_balance: number;
+          risk_amount: number;
+          target_profit: number;
+          result: 'win' | 'loss';
+          final_balance: number;
+          notes: string | null;
+          screenshot_url: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          trade_number: number;
+          starting_balance: number;
+          risk_amount: number;
+          target_profit: number;
+          result: 'win' | 'loss';
+          final_balance: number;
+          notes?: string | null;
+          screenshot_url?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          trade_number?: number;
+          starting_balance?: number;
+          risk_amount?: number;
+          target_profit?: number;
+          result?: 'win' | 'loss';
+          final_balance?: number;
+          notes?: string | null;
+          screenshot_url?: string | null;
+          created_at?: string;
+        };
+      };
     };
   };
 };
