@@ -105,6 +105,35 @@ export type Database = {
           created_at?: string;
         };
       };
+      challenge_settings: {
+        Row: {
+          id: string;
+          user_id: string;
+          starting_amount: number;
+          risk_percentage: number;
+          reward_ratio: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          starting_amount?: number;
+          risk_percentage?: number;
+          reward_ratio?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          starting_amount?: number;
+          risk_percentage?: number;
+          reward_ratio?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
   };
 };

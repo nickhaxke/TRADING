@@ -2,6 +2,16 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
+export interface ChallengeSettings {
+  id: string;
+  user_id: string;
+  starting_amount: number;
+  risk_percentage: number;
+  reward_ratio: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ChallengeTrade {
   id: string;
   user_id: string;
@@ -18,13 +28,52 @@ export interface ChallengeTrade {
 
 export const useCompoundingChallenge = () => {
   const [challengeTrades, setChallengeTrades] = useState<ChallengeTrade[]>([]);
+  const [challengeSettings, setChallengeSettings] = useState<ChallengeSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+
+  const fetchChallengeSettings = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('challenge_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        throw error;
+      }
+      
+      if (data) {
+        setChallengeSettings(data);
+      } else {
+        // Create default settings
+        const defaultSettings = {
+          user_id: user.id,
+          starting_amount: 100,
+          risk_percentage: 2,
+          reward_ratio: 2
+        };
+        
+        const { data: newSettings, error: createError } = await supabase
+          .from('challenge_settings')
+          .insert([defaultSettings])
+          .select()
+          .single();
+        
+        if (createError) throw createError;
+        setChallengeSettings(newSettings);
+      }
+    } catch (error) {
+      console.error('Error fetching challenge settings:', error);
+    }
+  };
 
   const fetchChallengeTrades = async () => {
     if (!user) return;
     
-    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('challenge_trades')
@@ -36,29 +85,58 @@ export const useCompoundingChallenge = () => {
       setChallengeTrades(data || []);
     } catch (error) {
       console.error('Error fetching challenge trades:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchChallengeTrades();
+    const loadData = async () => {
+      setLoading(true);
+      await fetchChallengeSettings();
+      await fetchChallengeTrades();
+      setLoading(false);
+    };
+    
+    loadData();
   }, [user]);
+
+  const updateChallengeSettings = async (settings: {
+    starting_amount: number;
+    risk_percentage: number;
+    reward_ratio: number;
+  }) => {
+    if (!user || !challengeSettings) return;
+
+    const { data, error } = await supabase
+      .from('challenge_settings')
+      .update({
+        starting_amount: settings.starting_amount,
+        risk_percentage: settings.risk_percentage,
+        reward_ratio: settings.reward_ratio,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', challengeSettings.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    setChallengeSettings(data);
+    return data;
+  };
 
   const addChallengeTrade = async (tradeData: {
     result: 'win' | 'loss';
     notes: string;
     screenshot_url: string | null;
   }) => {
-    if (!user) return;
+    if (!user || !challengeSettings) return;
 
     // Calculate trade details
     const currentBalance = challengeTrades.length > 0 
       ? challengeTrades[challengeTrades.length - 1].final_balance 
-      : 10;
+      : challengeSettings.starting_amount;
     
-    const riskAmount = currentBalance * 0.05; // 5% risk
-    const targetProfit = riskAmount * 2; // 1:2 R:R
+    const riskAmount = currentBalance * (challengeSettings.risk_percentage / 100);
+    const targetProfit = riskAmount * challengeSettings.reward_ratio;
     const tradeNumber = challengeTrades.length + 1;
     
     let finalBalance;
@@ -102,6 +180,8 @@ export const useCompoundingChallenge = () => {
   };
 
   const exportToPDF = async () => {
+    if (!challengeSettings) return;
+    
     try {
       const { default: jsPDF } = await import('jspdf');
       const autoTable = (await import('jspdf-autotable')).default;
@@ -122,16 +202,20 @@ export const useCompoundingChallenge = () => {
       // Challenge stats
       const currentBalance = challengeTrades.length > 0 
         ? challengeTrades[challengeTrades.length - 1].final_balance 
-        : 10;
-      const totalProfit = currentBalance - 10;
+        : challengeSettings.starting_amount;
+      const totalProfit = currentBalance - challengeSettings.starting_amount;
       const winningTrades = challengeTrades.filter(trade => trade.result === 'win').length;
       const winRate = challengeTrades.length > 0 ? (winningTrades / challengeTrades.length) * 100 : 0;
     
-      doc.text(`Starting Balance: $10.00`, 14, yPosition);
+      doc.text(`Starting Balance: $${challengeSettings.starting_amount.toFixed(2)}`, 14, yPosition);
       yPosition += 8;
       doc.text(`Current Balance: $${currentBalance.toFixed(2)}`, 14, yPosition);
       yPosition += 8;
       doc.text(`Total Profit: $${totalProfit.toFixed(2)}`, 14, yPosition);
+      yPosition += 8;
+      doc.text(`Risk per Trade: ${challengeSettings.risk_percentage}%`, 14, yPosition);
+      yPosition += 8;
+      doc.text(`Risk:Reward Ratio: 1:${challengeSettings.reward_ratio}`, 14, yPosition);
       yPosition += 8;
       doc.text(`Trades Completed: ${challengeTrades.length}/30`, 14, yPosition);
       yPosition += 8;
@@ -333,11 +417,14 @@ export const useCompoundingChallenge = () => {
 
   return {
     challengeTrades,
+    challengeSettings,
     loading,
     addChallengeTrade,
+    updateChallengeSettings,
     resetChallenge,
     exportToPDF,
     exportToCSV,
-    refreshChallengeTrades: fetchChallengeTrades
+    refreshChallengeTrades: fetchChallengeTrades,
+    refreshChallengeSettings: fetchChallengeSettings
   };
 };

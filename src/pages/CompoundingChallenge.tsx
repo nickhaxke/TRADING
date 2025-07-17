@@ -22,40 +22,65 @@ import { ImageUrlInput } from '../components/ImageUpload';
 export const CompoundingChallenge: React.FC = () => {
   const { 
     challengeTrades, 
+    challengeSettings,
     loading, 
     addChallengeTrade, 
     resetChallenge,
+    updateChallengeSettings,
     exportToPDF,
     exportToCSV 
   } = useCompoundingChallenge();
 
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showSettingsForm, setShowSettingsForm] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [formData, setFormData] = useState({
     result: '',
     notes: '',
     screenshot_url: ''
   });
+  const [settingsData, setSettingsData] = useState({
+    starting_amount: challengeSettings?.starting_amount || 100,
+    risk_percentage: challengeSettings?.risk_percentage || 2,
+    reward_ratio: challengeSettings?.reward_ratio || 2
+  });
 
   // Calculate current stats
   const currentBalance = challengeTrades.length > 0 
     ? challengeTrades[challengeTrades.length - 1].final_balance 
-    : 10;
+    : challengeSettings?.starting_amount || 100;
   
   const completedTrades = challengeTrades.length;
   const winningTrades = challengeTrades.filter(trade => trade.result === 'win').length;
   const winRate = completedTrades > 0 ? (winningTrades / completedTrades) * 100 : 0;
   
-  const totalProfit = currentBalance - 10;
+  const totalProfit = currentBalance - (challengeSettings?.starting_amount || 100);
   const avgProfitPerTrade = completedTrades > 0 ? totalProfit / completedTrades : 0;
 
   // Prepare chart data
   const chartData = [
-    { trade: 0, balance: 10 },
+    { trade: 0, balance: challengeSettings?.starting_amount || 100 },
     ...challengeTrades.map((trade, index) => ({
       trade: index + 1,
       balance: trade.final_balance
     }))
+  ];
+
+  const riskRewardOptions = [
+    { value: 1.5, label: '1:1.5' },
+    { value: 2, label: '1:2' },
+    { value: 2.5, label: '1:2.5' },
+    { value: 3, label: '1:3' },
+    { value: 4, label: '1:4' },
+    { value: 5, label: '1:5' }
+  ];
+
+  const riskPercentageOptions = [
+    { value: 1, label: '1%' },
+    { value: 2, label: '2%' },
+    { value: 3, label: '3%' },
+    { value: 5, label: '5%' },
+    { value: 10, label: '10%' }
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,6 +97,17 @@ export const CompoundingChallenge: React.FC = () => {
       setShowAddForm(false);
     } catch (error) {
       console.error('Error adding challenge trade:', error);
+    }
+  };
+
+  const handleSettingsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      await updateChallengeSettings(settingsData);
+      setShowSettingsForm(false);
+    } catch (error) {
+      console.error('Error updating challenge settings:', error);
     }
   };
 
@@ -117,11 +153,21 @@ export const CompoundingChallenge: React.FC = () => {
             Compounding Challenge
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            $10 → Target: Transform with 5% risk per trade (1:2 R:R)
+            ${challengeSettings?.starting_amount || 100} → Target: Transform with {challengeSettings?.risk_percentage || 2}% risk per trade (1:{challengeSettings?.reward_ratio || 2} R:R)
           </p>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <button
+            onClick={() => setShowSettingsForm(true)}
+            disabled={completedTrades > 0}
+            className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            title={completedTrades > 0 ? "Cannot change settings after starting trades" : "Configure challenge settings"}
+          >
+            <Target className="h-4 w-4 mr-2" />
+            Settings
+          </button>
+          
           <button
             onClick={() => setShowAddForm(true)}
             disabled={completedTrades >= 30}
@@ -275,17 +321,17 @@ export const CompoundingChallenge: React.FC = () => {
                   <p className="font-semibold text-gray-900 dark:text-white">${currentBalance.toFixed(2)}</p>
                 </div>
                 <div>
-                  <span className="text-gray-600 dark:text-gray-400">Risk Amount (5%):</span>
-                  <p className="font-semibold text-red-600">${(currentBalance * 0.05).toFixed(2)}</p>
+                  <span className="text-gray-600 dark:text-gray-400">Risk Amount ({challengeSettings?.risk_percentage || 2}%):</span>
+                  <p className="font-semibold text-red-600">${(currentBalance * ((challengeSettings?.risk_percentage || 2) / 100)).toFixed(2)}</p>
                 </div>
                 <div>
-                  <span className="text-gray-600 dark:text-gray-400">Target Profit (2:1):</span>
-                  <p className="font-semibold text-green-600">${(currentBalance * 0.1).toFixed(2)}</p>
+                  <span className="text-gray-600 dark:text-gray-400">Target Profit ({challengeSettings?.reward_ratio || 2}:1):</span>
+                  <p className="font-semibold text-green-600">${(currentBalance * ((challengeSettings?.risk_percentage || 2) / 100) * (challengeSettings?.reward_ratio || 2)).toFixed(2)}</p>
                 </div>
                 <div>
                   <span className="text-gray-600 dark:text-gray-400">Potential Balance:</span>
                   <p className="font-semibold text-gray-900 dark:text-white">
-                    ${(currentBalance + currentBalance * 0.1).toFixed(2)}
+                    ${(currentBalance + currentBalance * ((challengeSettings?.risk_percentage || 2) / 100) * (challengeSettings?.reward_ratio || 2)).toFixed(2)}
                   </p>
                 </div>
               </div>
@@ -347,6 +393,115 @@ export const CompoundingChallenge: React.FC = () => {
                 >
                   <Save className="h-4 w-4 mr-2" />
                   Add Trade
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Form Modal */}
+      {showSettingsForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Challenge Settings
+              </h3>
+              <button
+                onClick={() => setShowSettingsForm(false)}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSettingsSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Starting Amount ($) *
+                </label>
+                <input
+                  type="number"
+                  min="10"
+                  max="100000"
+                  step="0.01"
+                  value={settingsData.starting_amount}
+                  onChange={(e) => setSettingsData(prev => ({ ...prev, starting_amount: parseFloat(e.target.value) || 100 }))}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="100.00"
+                />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Minimum: $10, Maximum: $100,000
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Risk Percentage *
+                </label>
+                <select
+                  value={settingsData.risk_percentage}
+                  onChange={(e) => setSettingsData(prev => ({ ...prev, risk_percentage: parseFloat(e.target.value) }))}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                >
+                  {riskPercentageOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Percentage of balance to risk per trade
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Risk:Reward Ratio *
+                </label>
+                <select
+                  value={settingsData.reward_ratio}
+                  onChange={(e) => setSettingsData(prev => ({ ...prev, reward_ratio: parseFloat(e.target.value) }))}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                >
+                  {riskRewardOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Target profit multiplier (reward = risk × ratio)
+                </p>
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <h4 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">Preview:</h4>
+                <div className="text-xs text-blue-800 dark:text-blue-400 space-y-1">
+                  <p>Starting Balance: <span className="font-semibold">${settingsData.starting_amount.toFixed(2)}</span></p>
+                  <p>Risk per Trade: <span className="font-semibold text-red-600">${(settingsData.starting_amount * (settingsData.risk_percentage / 100)).toFixed(2)} ({settingsData.risk_percentage}%)</span></p>
+                  <p>Target Profit: <span className="font-semibold text-green-600">${(settingsData.starting_amount * (settingsData.risk_percentage / 100) * settingsData.reward_ratio).toFixed(2)} (1:{settingsData.reward_ratio})</span></p>
+                </div>
+              </div>
+
+              <div className="flex space-x-4 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowSettingsForm(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Settings
                 </button>
               </div>
             </form>
