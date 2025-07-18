@@ -2,16 +2,12 @@ import { useState, useEffect } from 'react';
 
 export const useTheme = () => {
   const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('forex-session-advisor-theme');
-    if (saved) {
-      return JSON.parse(saved);
-    }
-    // Default to system preference
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const saved = localStorage.getItem('theme');
+    return saved ? JSON.parse(saved) : false;
   });
 
   useEffect(() => {
-    localStorage.setItem('forex-session-advisor-theme', JSON.stringify(isDark));
+    localStorage.setItem('theme', JSON.stringify(isDark));
     if (isDark) {
       document.documentElement.classList.add('dark');
     } else {
