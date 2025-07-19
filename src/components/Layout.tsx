@@ -10,6 +10,7 @@ import {
   PlusCircle, 
   BarChart3, 
   FileText,
+  Globe,
   Menu,
   X
 } from 'lucide-react';
@@ -32,6 +33,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/trades', label: 'Trade Log', icon: FileText },
     { path: '/add-trade', label: 'Add Trade', icon: PlusCircle },
     { path: '/compounding-challenge', label: 'Challenge', icon: TrendingUp },
+    { path: '/forex-sessions', label: 'Sessions', icon: Globe },
   ];
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
