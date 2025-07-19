@@ -11,6 +11,7 @@ import { TradeLog } from './pages/TradeLog';
 import { EditTrade } from './pages/EditTrade';
 import { CompoundingChallenge } from './pages/CompoundingChallenge';
 import { ForexSessionAdvisor } from './pages/ForexSessionAdvisor';
+import { PersonalBrand } from './pages/PersonalBrand';
 
 function App() {
   return (
@@ -59,6 +60,13 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <ForexSessionAdvisor />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/personal-brand" element={
+            <ProtectedRoute>
+              <Layout>
+                <PersonalBrand />
               </Layout>
             </ProtectedRoute>
           } />

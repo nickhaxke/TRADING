@@ -12,7 +12,8 @@ import {
   FileText,
   Globe,
   Menu,
-  X
+  X,
+  User
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -34,6 +35,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/add-trade', label: 'Add Trade', icon: PlusCircle },
     { path: '/compounding-challenge', label: 'Challenge', icon: TrendingUp },
     { path: '/forex-sessions', label: 'Sessions', icon: Globe },
+    { path: '/personal-brand', label: 'Profile', icon: User },
   ];
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
