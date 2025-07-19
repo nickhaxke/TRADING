@@ -12,6 +12,7 @@ import { EditTrade } from './pages/EditTrade';
 import { CompoundingChallenge } from './pages/CompoundingChallenge';
 import { ForexSessionAdvisor } from './pages/ForexSessionAdvisor';
 import { PersonalBrand } from './pages/PersonalBrand';
+import { AdminPanel } from './pages/AdminPanel';
 
 function App() {
   return (
@@ -67,6 +68,13 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <PersonalBrand />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <Layout>
+                <AdminPanel />
               </Layout>
             </ProtectedRoute>
           } />
