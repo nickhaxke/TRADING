@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   User, 
   Briefcase, 
@@ -19,7 +20,8 @@ import {
   CheckCircle,
   Clock,
   ArrowRight,
-  Heart
+  Heart,
+  LogIn
 } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 
@@ -581,14 +583,23 @@ export const PersonalBrand: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
-          <div className="flex items-center space-x-3">
-            <User className="h-8 w-8" />
-            <div>
-              <h1 className="text-2xl font-montserrat font-bold">Personal Brand Hub</h1>
-              <p className="text-blue-100 font-open-sans">
-                Your gateway to professional services and expertise
-              </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <User className="h-8 w-8" />
+              <div>
+                <h1 className="text-2xl font-montserrat font-bold">Personal Brand Hub</h1>
+                <p className="text-blue-100 font-open-sans">
+                  Your gateway to professional services and expertise
+                </p>
+              </div>
             </div>
+            <Link
+              to="/login"
+              className="flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium text-blue-100 hover:text-white hover:bg-blue-700 transition-colors"
+            >
+              <LogIn className="h-4 w-4" />
+              <span className="hidden sm:block">Trading Login</span>
+            </Link>
           </div>
         </div>
 

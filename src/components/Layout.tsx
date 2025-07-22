@@ -30,12 +30,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: BarChart3 },
+    { path: '/', label: 'Home', icon: User },
+    { path: '/trading', label: 'Trading', icon: BarChart3 },
     { path: '/trades', label: 'Trade Log', icon: FileText },
     { path: '/add-trade', label: 'Add Trade', icon: PlusCircle },
     { path: '/compounding-challenge', label: 'Challenge', icon: TrendingUp },
     { path: '/forex-sessions', label: 'Sessions', icon: Globe },
-    { path: '/personal-brand', label: 'Profile', icon: User },
   ];
 
   const closeMobileMenu = () => setMobileMenuOpen(false);

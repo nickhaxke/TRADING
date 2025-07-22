@@ -19,7 +19,8 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<Landing />} />
+          <Route path="/" element={<PersonalBrand />} />
+          <Route path="/landing" element={<Landing />} />
           <Route path="/login" element={<AuthPage mode="login" />} />
           <Route path="/register" element={<AuthPage mode="register" />} />
           <Route path="/dashboard" element={
@@ -64,19 +65,17 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } />
-          <Route path="/personal-brand" element={
+          <Route path="/trading" element={
             <ProtectedRoute>
               <Layout>
-                <PersonalBrand />
+                <Dashboard />
               </Layout>
             </ProtectedRoute>
           } />
           <Route path="/admin" element={
-            <ProtectedRoute>
-              <Layout>
-                <AdminPanel />
-              </Layout>
-            </ProtectedRoute>
+            <Layout>
+              <AdminPanel />
+            </Layout>
           } />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
