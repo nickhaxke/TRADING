@@ -593,6 +593,13 @@ export const PersonalBrand: React.FC = () => {
                 </p>
               </div>
             </div>
+            <Link
+              to="/login"
+              className="flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium text-blue-100 hover:text-white hover:bg-blue-700 transition-colors"
+            >
+              <LogIn className="h-4 w-4" />
+              <span className="hidden sm:block">Trading Login</span>
+            </Link>
           </div>
         </div>
 
