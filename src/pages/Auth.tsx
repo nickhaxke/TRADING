@@ -37,9 +37,21 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
     }
   };
 
+  const handleClose = () => {
+    navigate('/');
+  };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-8 sm:py-12 px-3 sm:px-4 lg:px-8">
       <div className="max-w-md w-full space-y-8">
+        <div className="flex justify-end">
+          <button
+            onClick={handleClose}
+            className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+            title="Close"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
         <div>
           <div className="flex justify-center">
             <TrendingUp className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600" />
@@ -158,6 +170,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
               ) : (
                 mode === 'login' ? 'Sign in' : 'Create account'
               )}
+            </button>
+          </div>
+          
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Close
             </button>
           </div>
         </form>
