@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { TrendingUp, Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { TrendingUp, Eye, EyeOff, Mail, Lock, User, X } from 'lucide-react';
 
 interface AuthPageProps {
   mode: 'login' | 'register';
