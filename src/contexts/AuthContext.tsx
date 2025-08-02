@@ -47,27 +47,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string, username: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { username }
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { username }
+        }
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      if (error.message?.includes('Failed to fetch')) {
+        throw new Error('Unable to connect to authentication service. Please check your internet connection and try again.');
       }
-    });
-    if (error) throw error;
+      throw error;
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    if (error) throw error;
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      if (error.message?.includes('Failed to fetch')) {
+        throw new Error('Unable to connect to authentication service. Please check your internet connection and try again.');
+      }
+      throw error;
+    }
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch (error: any) {
+      if (error.message?.includes('Failed to fetch')) {
+        throw new Error('Unable to connect to authentication service. Please check your internet connection and try again.');
+      }
+      throw error;
+    }
   };
 
   return (
