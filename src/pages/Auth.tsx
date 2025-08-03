@@ -86,6 +86,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
           )}
           
           <div className="space-y-4 sm:space-y-6">
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+              <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">Demo Credentials</h4>
+              <p className="text-sm text-blue-800 dark:text-blue-400 mb-2">
+                Use these credentials to try the app:
+              </p>
+              <div className="text-sm font-mono bg-white dark:bg-gray-800 p-2 rounded border">
+                <p><strong>Email:</strong> demo@example.com</p>
+                <p><strong>Password:</strong> demo123</p>
+              </div>
+            </div>
+            
             {mode === 'register' && (
               <div>
                 <label htmlFor="username" className="sr-only">Username</label>

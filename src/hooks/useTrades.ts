@@ -1,44 +1,31 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { 
+  Trade, 
+  getTrades, 
+  addTrade as addTradeLocal, 
+  updateTrade as updateTradeLocal, 
+  deleteTrade as deleteTradeLocal 
+} from '../lib/localStorage';
 import { useAuth } from '../contexts/AuthContext';
 
-export interface Trade {
-  id: string;
-  user_id: string;
-  date: string;
-  pair: string;
-  trade_type?: string;
-  entry_price: number;
-  stop_loss: number;
-  take_profit: number;
-  rr_ratio: number;
-  lot_size: number | null;
-  outcome: number;
-  reason: string;
-  notes: string | null;
-  screenshot_url: string | null;
-  created_at: string;
-  updated_at: string;
-}
+export { Trade } from '../lib/localStorage';
 
 export const useTrades = () => {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  const fetchTrades = async () => {
-    if (!user) return;
+  const fetchTrades = () => {
+    if (!user) {
+      setTrades([]);
+      setLoading(false);
+      return;
+    }
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('trades')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('date', { ascending: false });
-      
-      if (error) throw error;
-      setTrades(data || []);
+      const localTrades = getTrades();
+      setTrades(localTrades);
     } catch (error) {
       console.error('Error fetching trades:', error);
     } finally {
@@ -50,41 +37,49 @@ export const useTrades = () => {
     fetchTrades();
   }, [user]);
 
-  const addTrade = async (tradeData: Omit<Trade, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    if (!user) return;
+  const addTrade = async (tradeData: Omit<Trade, 'id' | 'created_at' | 'updated_at'>) => {
+    if (!user) throw new Error('User not authenticated');
 
-    const { data, error } = await supabase
-      .from('trades')
-      .insert([{ ...tradeData, user_id: user.id }])
-      .select()
-      .single();
-
-    if (error) throw error;
-    setTrades(prev => [data, ...prev]);
-    return data;
+    try {
+      const newTrade = addTradeLocal(tradeData);
+      setTrades(prev => [newTrade, ...prev]);
+      return newTrade;
+    } catch (error) {
+      console.error('Error adding trade:', error);
+      throw error;
+    }
   };
 
   const updateTrade = async (id: string, updates: Partial<Trade>) => {
-    const { data, error } = await supabase
-      .from('trades')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', id)
-      .select()
-      .single();
+    if (!user) throw new Error('User not authenticated');
 
-    if (error) throw error;
-    setTrades(prev => prev.map(trade => trade.id === id ? data : trade));
-    return data;
+    try {
+      const updatedTrade = updateTradeLocal(id, updates);
+      if (updatedTrade) {
+        setTrades(prev => prev.map(trade => trade.id === id ? updatedTrade : trade));
+        return updatedTrade;
+      }
+      throw new Error('Trade not found');
+    } catch (error) {
+      console.error('Error updating trade:', error);
+      throw error;
+    }
   };
 
   const deleteTrade = async (id: string) => {
-    const { error } = await supabase
-      .from('trades')
-      .delete()
-      .eq('id', id);
+    if (!user) throw new Error('User not authenticated');
 
-    if (error) throw error;
-    setTrades(prev => prev.filter(trade => trade.id !== id));
+    try {
+      const success = deleteTradeLocal(id);
+      if (success) {
+        setTrades(prev => prev.filter(trade => trade.id !== id));
+      } else {
+        throw new Error('Trade not found');
+      }
+    } catch (error) {
+      console.error('Error deleting trade:', error);
+      throw error;
+    }
   };
 
   return {
