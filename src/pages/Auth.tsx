@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { TrendingUp, Eye, EyeOff, Mail, Lock, User, X } from 'lucide-react';
+import { TrendingUp, Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 
 interface AuthPageProps {
   mode: 'login' | 'register';
@@ -37,21 +37,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
     }
   };
 
-  const handleClose = () => {
-    navigate('/');
-  };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-8 sm:py-12 px-3 sm:px-4 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div className="flex justify-end">
-          <button
-            onClick={handleClose}
-            className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-            title="Close"
-          >
-            <X className="h-6 w-6" />
-          </button>
-        </div>
         <div>
           <div className="flex justify-center">
             <TrendingUp className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600" />
@@ -86,17 +74,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
           )}
           
           <div className="space-y-4 sm:space-y-6">
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-              <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">Demo Credentials</h4>
-              <p className="text-sm text-blue-800 dark:text-blue-400 mb-2">
-                Use these credentials to try the app:
-              </p>
-              <div className="text-sm font-mono bg-white dark:bg-gray-800 p-2 rounded border">
-                <p><strong>Email:</strong> demo@example.com</p>
-                <p><strong>Password:</strong> demo123</p>
-              </div>
-            </div>
-            
             {mode === 'register' && (
               <div>
                 <label htmlFor="username" className="sr-only">Username</label>
@@ -181,17 +158,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
               ) : (
                 mode === 'login' ? 'Sign in' : 'Create account'
               )}
-            </button>
-          </div>
-          
-          <div className="mt-4">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200"
-            >
-              <X className="h-4 w-4 mr-2" />
-              Close
             </button>
           </div>
         </form>
