@@ -10,10 +10,8 @@ import {
   PlusCircle, 
   BarChart3, 
   FileText,
-  Globe,
   Menu,
-  X,
-  User
+  X
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -30,12 +28,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
-    { path: '/', label: 'Home', icon: User },
-    { path: '/trading', label: 'Trading', icon: BarChart3 },
+    { path: '/dashboard', label: 'Dashboard', icon: BarChart3 },
     { path: '/trades', label: 'Trade Log', icon: FileText },
     { path: '/add-trade', label: 'Add Trade', icon: PlusCircle },
     { path: '/compounding-challenge', label: 'Challenge', icon: TrendingUp },
-    { path: '/forex-sessions', label: 'Sessions', icon: Globe },
   ];
 
   const closeMobileMenu = () => setMobileMenuOpen(false);

@@ -54,10 +54,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
                 <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
                   Sign up
                 </Link>
-                <br />
-                <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
-                  Forgot your password?
-                </Link>
               </>
             ) : (
               <>
