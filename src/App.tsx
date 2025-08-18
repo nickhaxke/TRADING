@@ -1,9 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { Layout } from './components/Layout';
+import { SidebarLayout } from './components/SidebarLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { Landing } from './pages/Landing';
 import { AuthPage } from './pages/Auth';
 import { Dashboard } from './pages/Dashboard';
 import { AddTrade } from './pages/AddTrade';
@@ -11,73 +10,68 @@ import { TradeLog } from './pages/TradeLog';
 import { EditTrade } from './pages/EditTrade';
 import { CompoundingChallenge } from './pages/CompoundingChallenge';
 import { ForexSessionAdvisor } from './pages/ForexSessionAdvisor';
-import { PersonalBrand } from './pages/PersonalBrand';
-import { AdminPanel } from './pages/AdminPanel';
+import { Profile } from './pages/Profile';
+import { ForgotPassword } from './pages/ForgotPassword';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<PersonalBrand />} />
-          <Route path="/landing" element={<Landing />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<AuthPage mode="login" />} />
           <Route path="/register" element={<AuthPage mode="register" />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/dashboard" element={
             <ProtectedRoute>
-              <Layout>
+              <SidebarLayout>
                 <Dashboard />
-              </Layout>
+              </SidebarLayout>
             </ProtectedRoute>
           } />
           <Route path="/add-trade" element={
             <ProtectedRoute>
-              <Layout>
+              <SidebarLayout>
                 <AddTrade />
-              </Layout>
+              </SidebarLayout>
             </ProtectedRoute>
           } />
           <Route path="/trades" element={
             <ProtectedRoute>
-              <Layout>
+              <SidebarLayout>
                 <TradeLog />
-              </Layout>
+              </SidebarLayout>
             </ProtectedRoute>
           } />
           <Route path="/edit-trade/:id" element={
             <ProtectedRoute>
-              <Layout>
+              <SidebarLayout>
                 <EditTrade />
-              </Layout>
+              </SidebarLayout>
             </ProtectedRoute>
           } />
           <Route path="/compounding-challenge" element={
             <ProtectedRoute>
-              <Layout>
+              <SidebarLayout>
                 <CompoundingChallenge />
-              </Layout>
+              </SidebarLayout>
             </ProtectedRoute>
           } />
           <Route path="/forex-sessions" element={
             <ProtectedRoute>
-              <Layout>
+              <SidebarLayout>
                 <ForexSessionAdvisor />
-              </Layout>
+              </SidebarLayout>
             </ProtectedRoute>
           } />
-          <Route path="/trading" element={
+          <Route path="/profile" element={
             <ProtectedRoute>
-              <Layout>
-                <Dashboard />
-              </Layout>
+              <SidebarLayout>
+                <Profile />
+              </SidebarLayout>
             </ProtectedRoute>
           } />
-          <Route path="/admin" element={
-            <Layout>
-              <AdminPanel />
-            </Layout>
-          } />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
