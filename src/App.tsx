@@ -6,10 +6,10 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Landing } from './pages/Landing';
 import { AuthPage } from './pages/Auth';
 import { Dashboard } from './pages/Dashboard';
-import { AddTrade } from './pages/AddTrade';
-import { TradeLog } from './pages/TradeLog';
-import { EditTrade } from './pages/EditTrade';
-import { CompoundingChallenge } from './pages/CompoundingChallenge';
+import { Pairs } from './pages/Pairs';
+import { Sessions } from './pages/Sessions';
+import { Settings } from './pages/Settings';
+import { Profile } from './pages/Profile';
 
 function App() {
   return (
@@ -19,6 +19,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<AuthPage mode="login" />} />
           <Route path="/register" element={<AuthPage mode="register" />} />
+          <Route path="/forgot-password" element={<AuthPage mode="forgot-password" />} />
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Layout>
@@ -26,31 +27,31 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } />
-          <Route path="/add-trade" element={
+          <Route path="/pairs" element={
             <ProtectedRoute>
               <Layout>
-                <AddTrade />
+                <Pairs />
               </Layout>
             </ProtectedRoute>
           } />
-          <Route path="/trades" element={
+          <Route path="/sessions" element={
             <ProtectedRoute>
               <Layout>
-                <TradeLog />
+                <Sessions />
               </Layout>
             </ProtectedRoute>
           } />
-          <Route path="/edit-trade/:id" element={
+          <Route path="/settings" element={
             <ProtectedRoute>
               <Layout>
-                <EditTrade />
+                <Settings />
               </Layout>
             </ProtectedRoute>
           } />
-          <Route path="/compounding-challenge" element={
+          <Route path="/profile" element={
             <ProtectedRoute>
               <Layout>
-                <CompoundingChallenge />
+                <Profile />
               </Layout>
             </ProtectedRoute>
           } />
