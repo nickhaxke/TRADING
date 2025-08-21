@@ -1,19 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  User, 
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  sendEmailVerification,
-  sendPasswordResetEmail,
-  updatePassword,
-  updateEmail,
-  reauthenticateWithCredential,
-  EmailAuthProvider,
-  onAuthStateChanged
-} from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
-import { auth, db, requestNotificationPermission } from '../lib/firebase';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase, requestNotificationPermission } from '../lib/supabase';
 import { UserProfile } from '../types/forex';
 
 interface AuthContextType {
@@ -46,33 +33,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadUserProfile(session.user);
+      }
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user ?? null);
       
-      if (user && user.emailVerified) {
-        // Load user profile from Firestore
-        try {
-          const profileDoc = await getDoc(doc(db, 'users', user.uid));
-          if (profileDoc.exists()) {
-            setUserProfile(profileDoc.data() as UserProfile);
-          } else {
-            // Create default profile if it doesn't exist
-            const defaultProfile: UserProfile = {
-              uid: user.uid,
-              email: user.email!,
-              username: user.displayName || user.email!.split('@')[0],
-              selectedPairs: [],
-              alertsEnabled: false,
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-              createdAt: new Date(),
-              updatedAt: new Date()
-            };
-            await setDoc(doc(db, 'users', user.uid), defaultProfile);
-            setUserProfile(defaultProfile);
-          }
-        } catch (error) {
-          console.error('Error loading user profile:', error);
-        }
+      if (session?.user && session.user.email_confirmed_at) {
+        await loadUserProfile(session.user);
       } else {
         setUserProfile(null);
       }
@@ -80,91 +55,189 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => subscription.unsubscribe();
   }, []);
 
+  const loadUserProfile = async (user: User) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code === 'PGRST116') {
+        // Profile doesn't exist, create it
+        const defaultProfile = {
+          user_id: user.id,
+          username: user.user_metadata?.username || user.email?.split('@')[0] || 'User',
+          selected_pairs: [],
+          alerts_enabled: false,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        };
+
+        const { data: newProfile, error: createError } = await supabase
+          .from('user_profiles')
+          .insert([defaultProfile])
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        
+        setUserProfile({
+          uid: user.id,
+          email: user.email!,
+          username: newProfile.username,
+          selectedPairs: newProfile.selected_pairs,
+          alertsEnabled: newProfile.alerts_enabled,
+          timezone: newProfile.timezone,
+          fcmToken: newProfile.fcm_token,
+          createdAt: new Date(newProfile.created_at),
+          updatedAt: new Date(newProfile.updated_at)
+        });
+      } else if (error) {
+        throw error;
+      } else {
+        setUserProfile({
+          uid: user.id,
+          email: user.email!,
+          username: data.username,
+          selectedPairs: data.selected_pairs,
+          alertsEnabled: data.alerts_enabled,
+          timezone: data.timezone,
+          fcmToken: data.fcm_token,
+          createdAt: new Date(data.created_at),
+          updatedAt: new Date(data.updated_at)
+        });
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+  };
+
   const signUp = async (email: string, password: string, username: string) => {
-    const { user } = await createUserWithEmailAndPassword(auth, email, password);
-    
-    // Send email verification
-    await sendEmailVerification(user);
-    
-    // Create user profile in Firestore
-    const userProfile: UserProfile = {
-      uid: user.uid,
+    const { data, error } = await supabase.auth.signUp({
       email,
-      username,
-      selectedPairs: [],
-      alertsEnabled: false,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+      password,
+      options: {
+        data: {
+          username: username
+        }
+      }
+    });
+
+    if (error) throw error;
     
-    await setDoc(doc(db, 'users', user.uid), userProfile);
+    // Note: Profile will be created automatically when email is confirmed
+    // and the user signs in for the first time
   };
 
   const signIn = async (email: string, password: string) => {
-    const { user } = await signInWithEmailAndPassword(auth, email, password);
-    
-    if (!user.emailVerified) {
-      await firebaseSignOut(auth);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) throw error;
+
+    if (!data.user?.email_confirmed_at) {
+      await supabase.auth.signOut();
       throw new Error('Please verify your email before signing in. Check your inbox for a verification link.');
     }
 
     // Request notification permission and update FCM token
     const fcmToken = await requestNotificationPermission();
     if (fcmToken && userProfile) {
-      await updateDoc(doc(db, 'users', user.uid), {
-        fcmToken,
-        updatedAt: new Date()
-      });
+      await updateUserProfile({ fcmToken });
     }
   };
 
   const signOut = async () => {
-    await firebaseSignOut(auth);
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   };
 
   const resetPassword = async (email: string) => {
-    await sendPasswordResetEmail(auth, email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) throw error;
   };
 
   const updateUserProfile = async (updates: Partial<UserProfile>) => {
     if (!user || !userProfile) throw new Error('No user logged in');
     
-    const updatedProfile = {
+    const profileUpdates: any = {};
+    
+    if (updates.username !== undefined) profileUpdates.username = updates.username;
+    if (updates.selectedPairs !== undefined) profileUpdates.selected_pairs = updates.selectedPairs;
+    if (updates.alertsEnabled !== undefined) profileUpdates.alerts_enabled = updates.alertsEnabled;
+    if (updates.timezone !== undefined) profileUpdates.timezone = updates.timezone;
+    if (updates.fcmToken !== undefined) profileUpdates.fcm_token = updates.fcmToken;
+    
+    profileUpdates.updated_at = new Date().toISOString();
+    
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .update(profileUpdates)
+      .eq('user_id', user.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    setUserProfile({
+      ...userProfile,
       ...updates,
       updatedAt: new Date()
-    };
-    
-    await updateDoc(doc(db, 'users', user.uid), updatedProfile);
-    setUserProfile({ ...userProfile, ...updatedProfile });
+    });
   };
 
   const updateUserPassword = async (currentPassword: string, newPassword: string) => {
     if (!user) throw new Error('No user logged in');
     
-    const credential = EmailAuthProvider.credential(user.email!, currentPassword);
-    await reauthenticateWithCredential(user, credential);
-    await updatePassword(user, newPassword);
+    // First verify current password by attempting to sign in
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: user.email!,
+      password: currentPassword
+    });
+    
+    if (verifyError) throw new Error('Current password is incorrect');
+    
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+    
+    if (error) throw error;
   };
 
   const updateUserEmail = async (newEmail: string, currentPassword: string) => {
     if (!user) throw new Error('No user logged in');
     
-    const credential = EmailAuthProvider.credential(user.email!, currentPassword);
-    await reauthenticateWithCredential(user, credential);
-    await updateEmail(user, newEmail);
-    await sendEmailVerification(user);
+    // First verify current password
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: user.email!,
+      password: currentPassword
+    });
     
-    // Update profile in Firestore
-    await updateUserProfile({ email: newEmail });
+    if (verifyError) throw new Error('Current password is incorrect');
+    
+    const { error } = await supabase.auth.updateUser({
+      email: newEmail
+    });
+    
+    if (error) throw error;
+    
+    // Update profile email will happen automatically when email is confirmed
   };
 
   const resendVerification = async () => {
     if (!user) throw new Error('No user logged in');
-    await sendEmailVerification(user);
+    
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: user.email!
+    });
+    
+    if (error) throw error;
   };
 
   return (

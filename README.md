@@ -52,10 +52,9 @@ A comprehensive real-time forex session tracking application built with React, T
 - **Lucide React** - Beautiful, consistent icons
 
 ### Backend & Services
-- **Firebase Auth** - Authentication with email verification
-- **Firestore** - NoSQL database for user data and preferences
-- **Firebase Cloud Messaging** - Push notifications
-- **Firebase Cloud Functions** - Serverless functions for alerts (optional)
+- **Supabase Auth** - Authentication with email verification
+- **Supabase Database** - PostgreSQL database for user data and preferences
+- **Push Notifications** - Optional browser notifications (can be extended with FCM)
 
 ### Development
 - **Vite** - Fast build tool and development server
@@ -76,51 +75,41 @@ A comprehensive real-time forex session tracking application built with React, T
    npm install
    ```
 
-3. Set up Firebase:
-   - Create a new Firebase project at https://console.firebase.google.com
+3. Set up Supabase:
+   - Create a new Supabase project at https://supabase.com
    - Enable Authentication with Email/Password provider
-   - Enable Firestore Database
-   - Enable Cloud Messaging
-   - Get your Firebase configuration
+   - Run the database migration to create user_profiles table
+   - Get your project URL and anon key
 
 4. Configure environment variables:
    - Copy `.env.example` to `.env`
-   - Fill in your Firebase configuration:
+   - Fill in your Supabase configuration:
      ```
-     VITE_FIREBASE_API_KEY=your_api_key
-     VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-     VITE_FIREBASE_PROJECT_ID=your_project_id
-     VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-     VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-     VITE_FIREBASE_APP_ID=your_app_id
-     VITE_FIREBASE_VAPID_KEY=your_vapid_key
+     VITE_SUPABASE_URL=your_supabase_project_url
+     VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
      ```
 
-5. Update Firebase service worker:
-   - Edit `public/firebase-messaging-sw.js`
-   - Replace placeholder values with your Firebase config
-
-6. Run the development server:
+5. Run the development server:
    ```bash
    npm run dev
    ```
 
-### Firebase Setup
+### Supabase Setup
 
 #### Authentication
-1. Go to Firebase Console → Authentication → Sign-in method
+1. Go to Supabase Dashboard → Authentication → Settings
 2. Enable Email/Password provider
 3. Configure email verification settings
 
-#### Firestore Database
-1. Go to Firebase Console → Firestore Database
-2. Create database in production mode
-3. Set up security rules (basic rules provided in project)
+#### Database
+1. Go to Supabase Dashboard → SQL Editor
+2. Run the migration file `supabase/migrations/create_user_profiles.sql`
+3. This creates the user_profiles table with proper RLS policies
 
-#### Cloud Messaging
-1. Go to Firebase Console → Cloud Messaging
-2. Generate VAPID key pair
-3. Add VAPID key to environment variables
+#### Optional: Push Notifications
+- Browser notifications are supported out of the box
+- For advanced push notifications, you can integrate Firebase Cloud Messaging
+- The FCM token field is already prepared in the user_profiles table
 
 ## Usage
 
