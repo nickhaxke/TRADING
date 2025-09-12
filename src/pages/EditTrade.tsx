@@ -4,6 +4,14 @@ import { useTrades } from '../hooks/useTrades';
 import { Calculator, Save, X, Camera } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { ImageUrlInput } from '../components/ImageUpload';
+import { ImageComparison } from '../components/ImageComparison';
+import { TradingStepsValidation } from '../components/TradingStepsValidation';
+
+interface TradingStep {
+  id: string;
+  text: string;
+  completed: boolean;
+}
 
 export const EditTrade: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,7 +30,10 @@ export const EditTrade: React.FC = () => {
     outcome: '',
     reason: '',
     notes: '',
-    screenshot_url: ''
+    screenshot_url: '',
+    before_image: '',
+    after_image: '',
+    trading_steps: [] as TradingStep[]
   });
   
   const [loading, setLoading] = useState(true);
@@ -46,7 +57,10 @@ export const EditTrade: React.FC = () => {
           outcome: trade.outcome.toString(),
           reason: trade.reason,
           notes: trade.notes || '',
-          screenshot_url: trade.screenshot_url || ''
+          screenshot_url: trade.screenshot_url || '',
+          before_image: (trade as any).before_image || '',
+          after_image: (trade as any).after_image || '',
+          trading_steps: (trade as any).trading_steps ? JSON.parse((trade as any).trading_steps) : []
         });
         setLoading(false);
       } else {
@@ -105,7 +119,10 @@ export const EditTrade: React.FC = () => {
         outcome: parseFloat(formData.outcome),
         reason: formData.reason,
         notes: formData.notes || null,
-        screenshot_url: formData.screenshot_url || null
+        screenshot_url: formData.screenshot_url || null,
+        before_image: formData.before_image || null,
+        after_image: formData.after_image || null,
+        trading_steps: JSON.stringify(formData.trading_steps)
       });
       
       navigate('/trades');
@@ -122,6 +139,26 @@ export const EditTrade: React.FC = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleBeforeImageChange = (url: string) => {
+    setFormData(prev => ({ ...prev, before_image: url }));
+  };
+
+  const handleAfterImageChange = (url: string) => {
+    setFormData(prev => ({ ...prev, after_image: url }));
+  };
+
+  const handleBeforeImageRemove = () => {
+    setFormData(prev => ({ ...prev, before_image: '' }));
+  };
+
+  const handleAfterImageRemove = () => {
+    setFormData(prev => ({ ...prev, after_image: '' }));
+  };
+
+  const handleTradingStepsChange = (steps: TradingStep[]) => {
+    setFormData(prev => ({ ...prev, trading_steps: steps }));
   };
 
   const handleImageChange = (url: string) => {
@@ -375,10 +412,28 @@ export const EditTrade: React.FC = () => {
             />
           </div>
 
+          {/* Trading Steps Validation */}
+          <TradingStepsValidation
+            steps={formData.trading_steps}
+            onStepsChange={handleTradingStepsChange}
+            disabled={submitting}
+          />
+
+          {/* Image Comparison */}
+          <ImageComparison
+            beforeImage={formData.before_image}
+            afterImage={formData.after_image}
+            onBeforeImageChange={handleBeforeImageChange}
+            onAfterImageChange={handleAfterImageChange}
+            onBeforeImageRemove={handleBeforeImageRemove}
+            onAfterImageRemove={handleAfterImageRemove}
+            disabled={submitting}
+          />
+
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               <Camera className="inline h-4 w-4 mr-1" />
-              Trade Screenshot URL
+              Additional Screenshot URL
             </label>
             <ImageUrlInput
               value={formData.screenshot_url}
@@ -387,7 +442,7 @@ export const EditTrade: React.FC = () => {
               disabled={submitting}
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Enter a URL to an image of your trade setup or chart analysis
+              Optional: Additional screenshot or chart analysis
             </p>
           </div>
 

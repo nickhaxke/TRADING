@@ -26,6 +26,9 @@ export type Database = {
           screenshot_url: string | null;
           created_at: string;
           updated_at: string;
+          before_image: string | null;
+          after_image: string | null;
+          trading_steps: string | null;
         };
         Insert: {
           id?: string;
@@ -44,6 +47,9 @@ export type Database = {
           screenshot_url?: string | null;
           created_at?: string;
           updated_at?: string;
+          before_image?: string | null;
+          after_image?: string | null;
+          trading_steps?: string | null;
         };
         Update: {
           id?: string;
@@ -62,6 +68,9 @@ export type Database = {
           screenshot_url?: string | null;
           created_at?: string;
           updated_at?: string;
+          before_image?: string | null;
+          after_image?: string | null;
+          trading_steps?: string | null;
         };
       };
       challenge_trades: {

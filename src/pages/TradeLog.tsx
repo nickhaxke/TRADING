@@ -10,7 +10,9 @@ import {
   ChevronUp,
   ChevronDown,
   ExternalLink,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Target,
+  CheckCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -546,6 +548,54 @@ export const TradeLog: React.FC = () => {
                             title="Edit trade"
                           >
                             <Edit className="h-4 w-4" />
+                        {/* Trading Steps Validation Badge */}
+                        {(trade as any).trading_steps && (() => {
+                          try {
+                            const steps = JSON.parse((trade as any).trading_steps);
+                            const completedSteps = steps.filter((step: any) => step.completed).length;
+                            const totalSteps = steps.length;
+                            const percentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+                            
+                            if (totalSteps > 0) {
+                              return (
+                                <div
+                                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                    percentage === 100
+                                      ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                                      : percentage >= 75
+                                      ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                                      : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                                  }`}
+                                  title={`Setup validation: ${completedSteps}/${totalSteps} criteria (${percentage}%)`}
+                                >
+                                  <Target className="h-3 w-3 mr-1" />
+                                  {percentage}%
+                                </div>
+                              );
+                            }
+                          } catch (e) {
+                            return null;
+                          }
+                          return null;
+                        })()}
+                        
+                        {/* Before/After Images */}
+                        {((trade as any).before_image || (trade as any).after_image) && (
+                          <button
+                            onClick={() => {
+                              // You can implement a modal to show before/after comparison
+                              console.log('Show before/after images for trade:', trade.id);
+                            }}
+                            className="text-purple-600 hover:text-purple-500 transition-colors p-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                            title="View before/after comparison"
+                          >
+                            <div className="flex items-center">
+                              <ImageIcon className="h-4 w-4" />
+                              <span className="text-xs ml-1">B/A</span>
+                            </div>
+                          </button>
+                        )}
+                        
                           </Link>
                           <button
                             onClick={() => handleDelete(trade.id)}
@@ -555,6 +605,7 @@ export const TradeLog: React.FC = () => {
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
+                        
                       </td>
                     </tr>
                   ))}
@@ -605,6 +656,7 @@ export const TradeLog: React.FC = () => {
                         Previous
                       </button>
                       {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        
                         <button
                           key={page}
                           onClick={() => setCurrentPage(page)}
