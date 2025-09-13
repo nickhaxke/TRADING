@@ -19,6 +19,9 @@ export interface Trade {
   screenshot_url: string | null;
   created_at: string;
   updated_at: string;
+  before_image?: string | null;
+  after_image?: string | null;
+  trading_steps?: string | null;
 }
 
 export const useTrades = () => {
