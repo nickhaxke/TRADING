@@ -2,18 +2,12 @@ import React, { useState, useMemo } from 'react';
 import { useTrades } from '../hooks/useTrades';
 import { 
   Search, 
-  Filter, 
-  Download, 
-  Edit, 
-  Trash2, 
   Plus,
-  ChevronUp,
-  ChevronDown,
-  ExternalLink,
   Image as ImageIcon,
   Target,
-  CheckCircle,
-  X, // fixed missing import
+  Edit, 
+  Trash2,
+  X, // for closing modal
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -25,6 +19,7 @@ export function TradeLog() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // Filter trades by pair
   const filteredTrades = useMemo(() => {
     return trades.filter(trade =>
       trade.pair.toLowerCase().includes(searchQuery.toLowerCase())
@@ -49,6 +44,7 @@ export function TradeLog() {
 
   return (
     <div className="p-4">
+      {/* Header */}
       <div className="flex justify-between mb-4">
         <div className="flex items-center space-x-2">
           <Search className="h-5 w-5 text-gray-400" />
@@ -69,15 +65,16 @@ export function TradeLog() {
         </Link>
       </div>
 
+      {/* Table */}
       {loading ? (
         <LoadingSpinner />
       ) : (
         <table className="min-w-full border">
           <thead>
-            <tr>
-              <th className="px-4 py-2">Pair</th>
-              <th className="px-4 py-2">Result</th>
-              <th className="px-4 py-2">Actions</th>
+            <tr className="bg-gray-50">
+              <th className="px-4 py-2 text-left">Pair</th>
+              <th className="px-4 py-2 text-left">Result</th>
+              <th className="px-4 py-2 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -98,14 +95,14 @@ export function TradeLog() {
                       </button>
                     )}
 
-                    {/* Trading Steps Validation Badge */}
+                    {/* Validation Badge */}
                     {(trade as any).trading_steps && (() => {
                       try {
                         const steps = JSON.parse((trade as any).trading_steps);
                         const completedSteps = steps.filter((s: any) => s.completed).length;
                         const totalSteps = steps.length;
-                        const percentage = totalSteps > 0 
-                          ? Math.round((completedSteps / totalSteps) * 100) 
+                        const percentage = totalSteps > 0
+                          ? Math.round((completedSteps / totalSteps) * 100)
                           : 0;
 
                         if (totalSteps > 0) {
@@ -131,7 +128,7 @@ export function TradeLog() {
                       return null;
                     })()}
 
-                    {/* Before/After Images */}
+                    {/* Before/After */}
                     {((trade as any).before_image || (trade as any).after_image) && (
                       <button
                         onClick={() => {
@@ -147,7 +144,7 @@ export function TradeLog() {
                       </button>
                     )}
 
-                    {/* Edit & Delete */}
+                    {/* Edit */}
                     <Link
                       to={`/edit-trade/${trade.id}`}
                       className="text-green-600 hover:text-green-500 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
@@ -156,6 +153,7 @@ export function TradeLog() {
                       <Edit className="h-4 w-4" />
                     </Link>
 
+                    {/* Delete */}
                     <button
                       onClick={() => handleDelete(trade.id)}
                       className="text-red-600 hover:text-red-500 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -202,7 +200,11 @@ export function TradeLog() {
             >
               <X className="h-5 w-5" />
             </button>
-            <img src={imagePreview} alt="Screenshot Preview" className="max-h-[80vh] mx-auto" />
+            <img
+              src={imagePreview}
+              alt="Screenshot Preview"
+              className="max-h-[80vh] mx-auto"
+            />
           </div>
         </div>
       )}
