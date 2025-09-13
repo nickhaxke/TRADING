@@ -136,3 +136,105 @@ export const TradeLog: React.FC = () => {
     </>
   );
 };
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+
+const exportToPDF = async (trades: any[]) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  doc.setFontSize(18);
+  doc.text("Trading Journal Report", pageWidth / 2, 15, { align: "center" });
+
+  doc.setFontSize(12);
+  doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 25);
+
+  // Table with main trade info
+  autoTable(doc, {
+    startY: 35,
+    head: [["Date", "Pair", "Risk %", "R:R", "Outcome", "Validation"]],
+    body: trades.map((t) => [
+      new Date(t.date).toLocaleDateString(),
+      t.pair,
+      t.risk,
+      t.rr,
+      t.outcome,
+      t.validation ? `${t.validation}%` : "-",
+    ]),
+  });
+
+  // Add detailed trade sections with images
+  let y = (doc as any).lastAutoTable.finalY + 10;
+
+  for (const t of trades) {
+    if (y > 250) {
+      doc.addPage();
+      y = 20;
+    }
+
+    doc.setFontSize(14);
+    doc.text(`${t.pair} - ${new Date(t.date).toLocaleDateString()}`, 14, y);
+    y += 8;
+
+    doc.setFontSize(11);
+    doc.text(`Reason: ${t.reason || "-"}`, 14, y);
+    y += 6;
+    doc.text(`Notes: ${t.notes || "-"}`, 14, y);
+    y += 6;
+    doc.text(
+      `Setup followed: ${t.validation ? t.validation + "%" : "N/A"}`,
+      14,
+      y
+    );
+    y += 10;
+
+    // Before/After images
+    if (t.images?.before || t.images?.after) {
+      doc.setFontSize(12);
+      doc.text("Screenshots:", 14, y);
+      y += 6;
+
+      if (t.images.before) {
+        try {
+          const img = await loadImageAsBase64(t.images.before);
+          doc.addImage(img, "JPEG", 14, y, 80, 60);
+        } catch (e) {
+          console.warn("Could not load before image:", e);
+        }
+      }
+
+      if (t.images.after) {
+        try {
+          const img = await loadImageAsBase64(t.images.after);
+          doc.addImage(img, "JPEG", 110, y, 80, 60);
+        } catch (e) {
+          console.warn("Could not load after image:", e);
+        }
+      }
+      y += 70;
+    } else {
+      y += 5;
+    }
+  }
+
+  doc.save("trading-journal.pdf");
+};
+
+// helper to fetch remote/local images as base64
+const loadImageAsBase64 = (url: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject("Canvas not supported");
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL("image/jpeg"));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+};
