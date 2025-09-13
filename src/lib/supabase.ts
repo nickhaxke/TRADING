@@ -86,6 +86,9 @@ export type Database = {
           notes: string | null;
           screenshot_url: string | null;
           created_at: string;
+          before_image: string | null;
+          after_image: string | null;
+          trading_steps: string | null;
         };
         Insert: {
           id?: string;
@@ -99,6 +102,9 @@ export type Database = {
           notes?: string | null;
           screenshot_url?: string | null;
           created_at?: string;
+          before_image?: string | null;
+          after_image?: string | null;
+          trading_steps?: string | null;
         };
         Update: {
           id?: string;
@@ -112,6 +118,9 @@ export type Database = {
           notes?: string | null;
           screenshot_url?: string | null;
           created_at?: string;
+          before_image?: string | null;
+          after_image?: string | null;
+          trading_steps?: string | null;
         };
       };
       challenge_settings: {
