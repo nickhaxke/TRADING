@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckSquare, Square, Target, Plus, X } from 'lucide-react';
+import { CheckSquare, Square, Target, Plus, X, Settings, RotateCcw } from 'lucide-react';
 
 interface TradingStep {
   id: string;
@@ -19,6 +19,17 @@ export const TradingStepsValidation: React.FC<TradingStepsValidationProps> = ({
   disabled = false
 }) => {
   const [newStepText, setNewStepText] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Default trading steps template
+  const defaultSteps = [
+    'Market trend analysis completed',
+    'Support/Resistance levels identified',
+    'Risk management plan set',
+    'Entry signal confirmed',
+    'Volume analysis done',
+    'News/fundamentals checked'
+  ];
 
   const addStep = () => {
     if (newStepText.trim()) {
@@ -52,6 +63,20 @@ export const TradingStepsValidation: React.FC<TradingStepsValidationProps> = ({
     );
   };
 
+  const loadDefaultSteps = () => {
+    const newSteps: TradingStep[] = defaultSteps.map((stepText, index) => ({
+      id: `default-${Date.now()}-${index}`,
+      text: stepText,
+      completed: false
+    }));
+    onStepsChange(newSteps);
+    setShowSettings(false);
+  };
+
+  const clearAllSteps = () => {
+    onStepsChange([]);
+  };
+
   // Calculate completion percentage
   const completedSteps = steps.filter(step => step.completed).length;
   const totalSteps = steps.length;
@@ -64,7 +89,53 @@ export const TradingStepsValidation: React.FC<TradingStepsValidationProps> = ({
         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
           Trading Setup Validation
         </h3>
+        <button
+          type="button"
+          onClick={() => setShowSettings(!showSettings)}
+          disabled={disabled}
+          className="ml-auto p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          title="Settings"
+        >
+          <Settings className="h-4 w-4" />
+        </button>
       </div>
+
+      {/* Settings Panel */}
+      {showSettings && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <h4 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-3">
+            Quick Setup Options
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={loadDefaultSteps}
+              disabled={disabled}
+              className="inline-flex items-center px-3 py-1.5 border border-blue-300 dark:border-blue-600 rounded-md text-xs font-medium text-blue-700 dark:text-blue-300 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              <Target className="h-3 w-3 mr-1" />
+              Load Default Checklist
+            </button>
+            <button
+              type="button"
+              onClick={clearAllSteps}
+              disabled={disabled || steps.length === 0}
+              className="inline-flex items-center px-3 py-1.5 border border-red-300 dark:border-red-600 rounded-md text-xs font-medium text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+            >
+              <RotateCcw className="h-3 w-3 mr-1" />
+              Clear All
+            </button>
+          </div>
+          <div className="mt-3 text-xs text-blue-700 dark:text-blue-400">
+            <p className="font-medium mb-1">Default checklist includes:</p>
+            <ul className="list-disc list-inside space-y-0.5 text-blue-600 dark:text-blue-400">
+              {defaultSteps.map((step, index) => (
+                <li key={index}>{step}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
 
       {/* Add New Step */}
       <div className="flex space-x-2">
@@ -203,10 +274,10 @@ export const TradingStepsValidation: React.FC<TradingStepsValidationProps> = ({
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <Target className="h-12 w-12 mx-auto mb-3 opacity-50" />
           <p className="text-sm">
-            Add trading criteria to validate your setup before entering trades
+            Add trading criteria to validate your setup
           </p>
           <p className="text-xs mt-1">
-            Examples: "RSI oversold", "Support level confirmed", "Volume spike"
+            Use settings ⚙️ to load default checklist or add custom criteria
           </p>
         </div>
       )}
