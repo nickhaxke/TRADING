@@ -132,6 +132,9 @@ export type Database = {
           reward_ratio: number;
           created_at: string;
           updated_at: string;
+          before_image: string | null;
+          after_image: string | null;
+          trading_steps: string | null;
         };
         Insert: {
           id?: string;
@@ -141,6 +144,9 @@ export type Database = {
           reward_ratio?: number;
           created_at?: string;
           updated_at?: string;
+          before_image?: string | null;
+          after_image?: string | null;
+          trading_steps?: string | null;
         };
         Update: {
           id?: string;
@@ -150,6 +156,9 @@ export type Database = {
           reward_ratio?: number;
           created_at?: string;
           updated_at?: string;
+          before_image?: string | null;
+          after_image?: string | null;
+          trading_steps?: string | null;
         };
       };
     };

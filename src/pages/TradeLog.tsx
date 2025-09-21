@@ -13,6 +13,8 @@ import {
   Image as ImageIcon,
   Target,
   CheckCircle
+  Target,
+  CheckCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -181,6 +183,23 @@ export const TradeLog: React.FC = () => {
             }
           }
           
+          // Trading Steps Validation Summary
+          if ((trade as any).trading_steps) {
+            try {
+              const steps = JSON.parse((trade as any).trading_steps);
+              const completedSteps = steps.filter((step: any) => step.completed).length;
+              const totalSteps = steps.length;
+              const percentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+              
+              if (totalSteps > 0) {
+                doc.text(`Setup Validation: ${percentage}% (${completedSteps}/${totalSteps} criteria)`, 14, yPosition);
+                yPosition += 6;
+              }
+            } catch (e) {
+              // Ignore parsing errors
+            }
+          }
+          
           // Reason
           doc.text(`Reason: ${trade.reason}`, 14, yPosition);
           yPosition += 6;
@@ -190,6 +209,60 @@ export const TradeLog: React.FC = () => {
             const noteLines = doc.splitTextToSize(`Notes: ${trade.notes}`, 180);
             doc.text(noteLines, 14, yPosition);
             yPosition += noteLines.length * 6;
+          }
+          
+          // Add Before Image
+          if ((trade as any).before_image) {
+            try {
+              const imageDataUrl = await loadImageForPDF((trade as any).before_image);
+              if (imageDataUrl) {
+                const { width, height } = await getImageDimensions(imageDataUrl, 85, 60);
+                
+                if (yPosition + height > 280) {
+                  doc.addPage();
+                  yPosition = 20;
+                }
+                
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'bold');
+                doc.text('Before Entry:', 14, yPosition);
+                yPosition += 8;
+                
+                doc.addImage(imageDataUrl, 'JPEG', 14, yPosition, width, height);
+                yPosition += height + 8;
+              }
+            } catch (error) {
+              console.warn('Error loading before image:', error);
+              doc.text(`Before Image: ${(trade as any).before_image}`, 14, yPosition);
+              yPosition += 6;
+            }
+          }
+          
+          // Add After Image
+          if ((trade as any).after_image) {
+            try {
+              const imageDataUrl = await loadImageForPDF((trade as any).after_image);
+              if (imageDataUrl) {
+                const { width, height } = await getImageDimensions(imageDataUrl, 85, 60);
+                
+                if (yPosition + height > 280) {
+                  doc.addPage();
+                  yPosition = 20;
+                }
+                
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'bold');
+                doc.text('After Exit:', 14, yPosition);
+                yPosition += 8;
+                
+                doc.addImage(imageDataUrl, 'JPEG', 14, yPosition, width, height);
+                yPosition += height + 8;
+              }
+            } catch (error) {
+              console.warn('Error loading after image:', error);
+              doc.text(`After Image: ${(trade as any).after_image}`, 14, yPosition);
+              yPosition += 6;
+            }
           }
           
           // Add Before Image
@@ -318,6 +391,19 @@ export const TradeLog: React.FC = () => {
                 return '-';
               }
             })()
+            (() => {
+              try {
+                if ((trade as any).trading_steps) {
+                  const steps = JSON.parse((trade as any).trading_steps);
+                  const completedSteps = steps.filter((step: any) => step.completed).length;
+                  const totalSteps = steps.length;
+                  return totalSteps > 0 ? `${Math.round((completedSteps / totalSteps) * 100)}%` : '-';
+                }
+                return '-';
+              } catch (e) {
+                return '-';
+              }
+            })()
           ]);
           
           autoTable(doc, {
@@ -334,6 +420,7 @@ export const TradeLog: React.FC = () => {
               5: { cellWidth: 20 },
               6: { cellWidth: 15 },
               7: { cellWidth: 20 },
+              8: { cellWidth: 15 }
               8: { cellWidth: 15 }
             }
           });
@@ -689,60 +776,60 @@ export const TradeLog: React.FC = () => {
                             </button>
                           )}
                           
+                          {/* Trading Steps Validation Badge */}
+                          {(trade as any).trading_steps && (() => {
+                            try {
+                              const steps = JSON.parse((trade as any).trading_steps);
+                              const completedSteps = steps.filter((step: any) => step.completed).length;
+                              const totalSteps = steps.length;
+                              const percentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+                              
+                              if (totalSteps > 0) {
+                                return (
+                                  <div
+                                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                      percentage === 100
+                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                                        : percentage >= 75
+                                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                                        : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                                    }`}
+                                    title={`Setup validation: ${completedSteps}/${totalSteps} criteria (${percentage}%)`}
+                                  >
+                                    <Target className="h-3 w-3 mr-1" />
+                                    {percentage}%
+                                  </div>
+                                );
+                              }
+                            } catch (e) {
+                              return null;
+                            }
+                            return null;
+                          })()}
+                          
+                          {/* Before/After Images */}
+                          {((trade as any).before_image || (trade as any).after_image) && (
+                            <button
+                              onClick={() => {
+                                // You can implement a modal to show before/after comparison
+                                console.log('Show before/after images for trade:', trade.id);
+                              }}
+                              className="text-purple-600 hover:text-purple-500 transition-colors p-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                              title="View before/after comparison"
+                            >
+                              <div className="flex items-center">
+                                <ImageIcon className="h-4 w-4" />
+                                <span className="text-xs ml-1">B/A</span>
+                              </div>
+                            </button>
+                          )}
+                          
                           <Link
                             to={`/edit-trade/${trade.id}`}
                             className="text-green-600 hover:text-green-500 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
                             title="Edit trade"
                           >
                             <Edit className="h-4 w-4" />
-                        {/* Trading Steps Validation Badge */}
-                        {(trade as any).trading_steps && (() => {
-                          try {
-                            const steps = JSON.parse((trade as any).trading_steps);
-                            const completedSteps = steps.filter((step: any) => step.completed).length;
-                            const totalSteps = steps.length;
-                            const percentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
-                            
-                            if (totalSteps > 0) {
-                              return (
-                                <div
-                                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                    percentage === 100
-                                      ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                                      : percentage >= 75
-                                      ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
-                                      : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                                  }`}
-                                  title={`Setup validation: ${completedSteps}/${totalSteps} criteria (${percentage}%)`}
-                                >
-                                  <Target className="h-3 w-3 mr-1" />
-                                  {percentage}%
-                                </div>
-                              );
-                            }
-                          } catch (e) {
-                            return null;
-                          }
-                          return null;
-                        })()}
-                        
-                        {/* Before/After Images */}
-                        {((trade as any).before_image || (trade as any).after_image) && (
-                          <button
-                            onClick={() => {
-                              // You can implement a modal to show before/after comparison
-                              console.log('Show before/after images for trade:', trade.id);
-                            }}
-                            className="text-purple-600 hover:text-purple-500 transition-colors p-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                            title="View before/after comparison"
-                          >
-                            <div className="flex items-center">
-                              <ImageIcon className="h-4 w-4" />
-                              <span className="text-xs ml-1">B/A</span>
-                            </div>
-                          </button>
-                        )}
-                        
                           </Link>
                           <button
                             onClick={() => handleDelete(trade.id)}

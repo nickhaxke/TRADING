@@ -22,6 +22,9 @@ export interface Trade {
   before_image?: string | null;
   after_image?: string | null;
   trading_steps?: string | null;
+  before_image?: string | null;
+  after_image?: string | null;
+  trading_steps?: string | null;
 }
 
 export const useTrades = () => {
