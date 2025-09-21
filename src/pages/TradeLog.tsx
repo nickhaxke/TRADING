@@ -13,8 +13,6 @@ import {
   Image as ImageIcon,
   Target,
   CheckCircle
-  Target,
-  CheckCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { LoadingSpinner } from '../components/LoadingSpinner';
