@@ -192,94 +192,19 @@ export const TradeLog: React.FC = () => {
             yPosition += noteLines.length * 6;
           }
           
-          // Add Before Image
+          // Process Before Image
           if ((trade as any).before_image) {
-            try {
-              const imageDataUrl = await loadImageForPDF((trade as any).before_image);
-              if (imageDataUrl) {
-                const { width, height } = await getImageDimensions(imageDataUrl, 85, 60);
-                
-                if (yPosition + height > 280) {
-                  doc.addPage();
-                  yPosition = 20;
-                }
-                
-                doc.setFontSize(9);
-                doc.setFont(undefined, 'bold');
-                doc.text('Before Entry:', 14, yPosition);
-                yPosition += 8;
-                
-                doc.addImage(imageDataUrl, 'JPEG', 14, yPosition, width, height);
-                yPosition += height + 8;
-              }
-            } catch (error) {
-              console.warn('Error loading before image:', error);
-              doc.text(`Before Image: ${(trade as any).before_image}`, 14, yPosition);
-              yPosition += 6;
-            }
+            yPosition = await addImageToPDF(doc, (trade as any).before_image, 'Before Entry:', yPosition);
           }
           
-          // Add After Image
+          // Process After Image  
           if ((trade as any).after_image) {
-            try {
-              const imageDataUrl = await loadImageForPDF((trade as any).after_image);
-              if (imageDataUrl) {
-                const { width, height } = await getImageDimensions(imageDataUrl, 85, 60);
-                
-                if (yPosition + height > 280) {
-                  doc.addPage();
-                  yPosition = 20;
-                }
-                
-                doc.setFontSize(9);
-                doc.setFont(undefined, 'bold');
-                doc.text('After Exit:', 14, yPosition);
-                yPosition += 8;
-                
-                doc.addImage(imageDataUrl, 'JPEG', 14, yPosition, width, height);
-                yPosition += height + 8;
-              }
-            } catch (error) {
-              console.warn('Error loading after image:', error);
-              doc.text(`After Image: ${(trade as any).after_image}`, 14, yPosition);
-              yPosition += 6;
-            }
+            yPosition = await addImageToPDF(doc, (trade as any).after_image, 'After Exit:', yPosition);
           }
           
-          // Add image if available
+          // Process Additional Screenshot
           if (trade.screenshot_url) {
-            try {
-              const imageDataUrl = await loadImageForPDF(trade.screenshot_url);
-              
-              if (imageDataUrl) {
-                const { width, height } = await getImageDimensions(imageDataUrl, 180, 80);
-                
-                // Check if image fits on current page
-                if (yPosition + height > 280) {
-                  doc.addPage();
-                  yPosition = 20;
-                }
-                
-                doc.setFontSize(9);
-                doc.setFont(undefined, 'bold');
-                doc.text('Additional Screenshot:', 14, yPosition);
-                yPosition += 8;
-                
-                // Add image to PDF
-                doc.addImage(imageDataUrl, 'JPEG', 14, yPosition, width, height);
-                yPosition += height + 8;
-              } else {
-                // If image loading failed, show URL as text
-                console.warn('Could not load image for PDF, showing URL instead:', trade.screenshot_url);
-                doc.text(`Screenshot: ${trade.screenshot_url}`, 14, yPosition);
-                yPosition += 6;
-              }
-              
-            } catch (error) {
-              console.warn('Error processing image for PDF:', error);
-              doc.text(`Screenshot: ${trade.screenshot_url}`, 14, yPosition);
-              yPosition += 6;
-            }
+            yPosition = await addImageToPDF(doc, trade.screenshot_url, 'Additional Screenshot:', yPosition, 180, 80);
           }
           
           // Add separator line
@@ -349,76 +274,151 @@ export const TradeLog: React.FC = () => {
     }, 500);
   };
 
-  // Helper function to load images for PDF
+  // Enhanced helper function to add images to PDF
+  const addImageToPDF = async (
+    doc: any, 
+    imageUrl: string, 
+    label: string, 
+    yPosition: number, 
+    maxWidth: number = 85, 
+    maxHeight: number = 60
+  ): Promise<number> => {
+    try {
+      const imageDataUrl = await loadImageForPDF(imageUrl);
+      
+      if (imageDataUrl) {
+        const { width, height } = await getImageDimensions(imageDataUrl, maxWidth, maxHeight);
+        
+        // Check if image fits on current page
+        if (yPosition + height + 15 > 280) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        // Add label
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'bold');
+        doc.text(label, 14, yPosition);
+        yPosition += 8;
+        
+        // Add image
+        doc.addImage(imageDataUrl, 'JPEG', 14, yPosition, width, height);
+        yPosition += height + 8;
+        
+        return yPosition;
+      } else {
+        // Fallback to URL text if image can't be loaded
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        doc.text(`${label} ${imageUrl}`, 14, yPosition);
+        return yPosition + 6;
+      }
+    } catch (error) {
+      console.warn(`Error processing ${label}:`, error);
+      // Fallback to URL text
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'normal');
+      doc.text(`${label} ${imageUrl}`, 14, yPosition);
+      return yPosition + 6;
+    }
+  };
+
+  // Improved helper function to load images for PDF
   const loadImageForPDF = async (imageUrl: string): Promise<string | null> => {
     try {
-      // Try to fetch image as blob first (better CORS handling)
-      const response = await fetch(imageUrl, {
-        mode: 'cors',
-        credentials: 'omit'
-      });
-      
-      if (response.ok) {
-        const blob = await response.blob();
-        
-        // Convert blob to data URL
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
+      // Check if it's already a data URL
+      if (imageUrl.startsWith('data:')) {
+        return imageUrl;
       }
-    } catch (fetchError) {
-      console.warn('Fetch method failed, trying Image element:', fetchError);
-      
-      // Fallback to Image element method
+
+      // Try multiple methods to load the image
+      let imageDataUrl: string | null = null;
+
+      // Method 1: Try fetch with CORS
       try {
+        const response = await fetch(imageUrl, {
+          mode: 'cors',
+          credentials: 'omit',
+          headers: {
+            'Accept': 'image/*'
+          }
+        });
+        
+        if (response.ok) {
+          const blob = await response.blob();
+          imageDataUrl = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        }
+      } catch (fetchError) {
+        console.warn('Fetch method failed:', fetchError);
+      }
+      
+      // Method 2: Try Image element if fetch failed
+      if (!imageDataUrl) {
         const img = new Image();
         img.crossOrigin = 'anonymous';
         
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-          img.src = imageUrl;
-        });
-        
-        // Convert image to canvas then to data URL
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx?.drawImage(img, 0, 0);
-        return canvas.toDataURL('image/jpeg', 0.8);
-      } catch (imgError) {
-        console.warn('Image element method also failed:', imgError);
+        try {
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = imageUrl;
+          });
+          
+          // Convert image to canvas then to data URL
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          }
+        } catch (imgError) {
+          console.warn('Image element method failed:', imgError);
+        }
       }
+      
+      return imageDataUrl;
+    } catch (error) {
+      console.warn('All image loading methods failed:', error);
+      return null;
     }
-    
-    return null;
   };
 
-  // Helper function to get image dimensions for PDF
+  // Improved helper function to get image dimensions for PDF
   const getImageDimensions = async (imageDataUrl: string, maxWidth: number, maxHeight: number) => {
-    const tempImg = new Image();
-    await new Promise((resolve) => {
-      tempImg.onload = resolve;
-      tempImg.src = imageDataUrl;
-    });
-    
-    let { width, height } = tempImg;
-    
-    if (width > maxWidth) {
-      height = (height * maxWidth) / width;
-      width = maxWidth;
+    try {
+      const tempImg = new Image();
+      await new Promise((resolve, reject) => {
+        tempImg.onload = resolve;
+        tempImg.onerror = reject;
+        tempImg.src = imageDataUrl;
+      });
+      
+      let { width, height } = tempImg;
+      
+      // Scale down if too large
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+      
+      if (height > maxHeight) {
+        width = (width * maxHeight) / height;
+        height = maxHeight;
+      }
+      
+      return { width, height };
+    } catch (error) {
+      console.warn('Error getting image dimensions:', error);
+      // Return default dimensions if error
+      return { width: maxWidth, height: maxHeight };
     }
-    
-    if (height > maxHeight) {
-      width = (width * maxHeight) / height;
-      height = maxHeight;
-    }
-    
-    return { width, height };
   };
 
   const handleImagePreview = (imageUrl: string) => {
