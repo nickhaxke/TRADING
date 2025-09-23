@@ -181,23 +181,6 @@ export const TradeLog: React.FC = () => {
             }
           }
           
-          // Trading Steps Validation Summary
-          if ((trade as any).trading_steps) {
-            try {
-              const steps = JSON.parse((trade as any).trading_steps);
-              const completedSteps = steps.filter((step: any) => step.completed).length;
-              const totalSteps = steps.length;
-              const percentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
-              
-              if (totalSteps > 0) {
-                doc.text(`Setup Validation: ${percentage}% (${completedSteps}/${totalSteps} criteria)`, 14, yPosition);
-                yPosition += 6;
-              }
-            } catch (e) {
-              // Ignore parsing errors
-            }
-          }
-          
           // Reason
           doc.text(`Reason: ${trade.reason}`, 14, yPosition);
           yPosition += 6;
@@ -207,60 +190,6 @@ export const TradeLog: React.FC = () => {
             const noteLines = doc.splitTextToSize(`Notes: ${trade.notes}`, 180);
             doc.text(noteLines, 14, yPosition);
             yPosition += noteLines.length * 6;
-          }
-          
-          // Add Before Image
-          if ((trade as any).before_image) {
-            try {
-              const imageDataUrl = await loadImageForPDF((trade as any).before_image);
-              if (imageDataUrl) {
-                const { width, height } = await getImageDimensions(imageDataUrl, 85, 60);
-                
-                if (yPosition + height > 280) {
-                  doc.addPage();
-                  yPosition = 20;
-                }
-                
-                doc.setFontSize(9);
-                doc.setFont(undefined, 'bold');
-                doc.text('Before Entry:', 14, yPosition);
-                yPosition += 8;
-                
-                doc.addImage(imageDataUrl, 'JPEG', 14, yPosition, width, height);
-                yPosition += height + 8;
-              }
-            } catch (error) {
-              console.warn('Error loading before image:', error);
-              doc.text(`Before Image: ${(trade as any).before_image}`, 14, yPosition);
-              yPosition += 6;
-            }
-          }
-          
-          // Add After Image
-          if ((trade as any).after_image) {
-            try {
-              const imageDataUrl = await loadImageForPDF((trade as any).after_image);
-              if (imageDataUrl) {
-                const { width, height } = await getImageDimensions(imageDataUrl, 85, 60);
-                
-                if (yPosition + height > 280) {
-                  doc.addPage();
-                  yPosition = 20;
-                }
-                
-                doc.setFontSize(9);
-                doc.setFont(undefined, 'bold');
-                doc.text('After Exit:', 14, yPosition);
-                yPosition += 8;
-                
-                doc.addImage(imageDataUrl, 'JPEG', 14, yPosition, width, height);
-                yPosition += height + 8;
-              }
-            } catch (error) {
-              console.warn('Error loading after image:', error);
-              doc.text(`After Image: ${(trade as any).after_image}`, 14, yPosition);
-              yPosition += 6;
-            }
           }
           
           // Add Before Image
@@ -389,19 +318,6 @@ export const TradeLog: React.FC = () => {
                 return '-';
               }
             })()
-            (() => {
-              try {
-                if ((trade as any).trading_steps) {
-                  const steps = JSON.parse((trade as any).trading_steps);
-                  const completedSteps = steps.filter((step: any) => step.completed).length;
-                  const totalSteps = steps.length;
-                  return totalSteps > 0 ? `${Math.round((completedSteps / totalSteps) * 100)}%` : '-';
-                }
-                return '-';
-              } catch (e) {
-                return '-';
-              }
-            })()
           ]);
           
           autoTable(doc, {
@@ -418,7 +334,6 @@ export const TradeLog: React.FC = () => {
               5: { cellWidth: 20 },
               6: { cellWidth: 15 },
               7: { cellWidth: 20 },
-              8: { cellWidth: 15 }
               8: { cellWidth: 15 }
             }
           });
