@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Moon, Sun, LogOut, Home, BarChart2, PlusSquare, List, Target } from 'lucide-react';
+import { Moon, Sun, LogOut, Home, BarChart2, PlusSquare, List, Target, Calculator } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -40,6 +40,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </Link>
               <Link to="/compounding-challenge" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 flex items-center">
                 <Target className="h-4 w-4 mr-1" /> Challenge
+              </Link>
+              <Link to="/risk-manager" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 flex items-center">
+                <Calculator className="h-4 w-4 mr-1" /> Risk Manager
               </Link>
             </div>
           </div>

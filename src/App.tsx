@@ -10,6 +10,7 @@ import { AddTrade } from './pages/AddTrade';
 import { TradeLog } from './pages/TradeLog';
 import { EditTrade } from './pages/EditTrade';
 import { CompoundingChallenge } from './pages/CompoundingChallenge';
+import { RiskManager } from './pages/RiskManager';
 
 function App() {
   return (
@@ -51,6 +52,13 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <CompoundingChallenge />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/risk-manager" element={
+            <ProtectedRoute>
+              <Layout>
+                <RiskManager />
               </Layout>
             </ProtectedRoute>
           } />
