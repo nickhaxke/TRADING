@@ -122,4 +122,4 @@ export const TradingStats: React.FC = () => {
       </div>
     </div>
   );
-};</parameter>
+};
