@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
+// Cache for trades data
+let tradesCache: Trade[] | null = null;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 30000; // 30 seconds
 export interface Trade {
   id: string;
   user_id: string;
@@ -35,6 +39,14 @@ export const useTrades = () => {
   const fetchTrades = async () => {
     if (!user) return;
     
+    // Check cache first
+    const now = Date.now();
+    if (tradesCache && (now - cacheTimestamp) < CACHE_DURATION) {
+      setTrades(tradesCache);
+      setLoading(false);
+      return;
+    }
+    
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -44,7 +56,12 @@ export const useTrades = () => {
         .order('date', { ascending: false });
       
       if (error) throw error;
-      setTrades(data || []);
+      const tradesData = data || [];
+      setTrades(tradesData);
+      
+      // Update cache
+      tradesCache = tradesData;
+      cacheTimestamp = now;
     } catch (error) {
       console.error('Error fetching trades:', error);
     } finally {
@@ -67,6 +84,9 @@ export const useTrades = () => {
 
     if (error) throw error;
     setTrades(prev => [data, ...prev]);
+    
+    // Invalidate cache
+    tradesCache = null;
     return data;
   };
 
@@ -80,6 +100,9 @@ export const useTrades = () => {
 
     if (error) throw error;
     setTrades(prev => prev.map(trade => trade.id === id ? data : trade));
+    
+    // Invalidate cache
+    tradesCache = null;
     return data;
   };
 
@@ -91,6 +114,9 @@ export const useTrades = () => {
 
     if (error) throw error;
     setTrades(prev => prev.filter(trade => trade.id !== id));
+    
+    // Invalidate cache
+    tradesCache = null;
   };
 
   return {

@@ -12,11 +12,75 @@ import {
   ExternalLink,
   Image as ImageIcon,
   Target,
-  CheckCircle
+  CheckCircle,
+  X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
+// Memoized table row component for better performance
+const TradeRow = React.memo(({ trade, onDelete, onImagePreview }: {
+  trade: any;
+  onDelete: (id: string) => void;
+  onImagePreview: (url: string) => void;
+}) => (
+  <tr className="hover:bg-gray-50 dark:hover:bg-gray-700">
+    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+      {new Date(trade.date).toLocaleDateString()}
+    </td>
+    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+      {trade.pair}
+    </td>
+    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+      {trade.entry_price.toFixed(5)}
+    </td>
+    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+      {trade.stop_loss.toFixed(5)}
+    </td>
+    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+      {trade.take_profit.toFixed(5)}
+    </td>
+    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+      {trade.rr_ratio.toFixed(2)}
+    </td>
+    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
+      <span className={`font-medium ${trade.outcome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+        ${trade.outcome.toFixed(2)}
+      </span>
+    </td>
+    <td className="px-3 sm:px-6 py-4 text-sm text-gray-900 dark:text-white max-w-32 sm:max-w-xs truncate">
+      {trade.reason}
+    </td>
+    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+      <div className="flex items-center space-x-2">
+        {trade.screenshot_url && (
+          <button
+            onClick={() => onImagePreview(trade.screenshot_url!)}
+            className="text-blue-600 hover:text-blue-500 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
+            title="View screenshot"
+          >
+            <ImageIcon className="h-4 w-4" />
+          </button>
+        )}
+        
+        <Link
+          to={`/edit-trade/${trade.id}`}
+          className="text-green-600 hover:text-green-500 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
+          title="Edit trade"
+        >
+          <Edit className="h-4 w-4" />
+        </Link>
+        <button
+          onClick={() => onDelete(trade.id)}
+          className="text-red-600 hover:text-red-500 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+          title="Delete trade"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
+    </td>
+  </tr>
+));
 export const TradeLog: React.FC = () => {
   const { trades, loading, deleteTrade } = useTrades();
   const [searchTerm, setSearchTerm] = useState('');
@@ -602,159 +666,12 @@ export const TradeLog: React.FC = () => {
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {paginatedTrades.map((trade) => (
-                    <tr key={trade.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {new Date(trade.date).toLocaleDateString()}
-                      </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                        {trade.pair}
-                      </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {trade.entry_price.toFixed(5)}
-                      </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {trade.stop_loss.toFixed(5)}
-                      </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {trade.take_profit.toFixed(5)}
-                      </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                        {trade.rr_ratio.toFixed(2)}
-                      </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
-                        <span className={`font-medium ${trade.outcome >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          ${trade.outcome.toFixed(2)}
-                        </span>
-                      </td>
-                      <td className="px-3 sm:px-6 py-4 text-sm text-gray-900 dark:text-white max-w-32 sm:max-w-xs truncate">
-                        {trade.reason}
-                      </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center space-x-2">
-                          {trade.screenshot_url && (
-                            <button
-                              onClick={() => handleImagePreview(trade.screenshot_url!)}
-                              className="text-blue-600 hover:text-blue-500 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                              title="View screenshot"
-                            >
-                              <ImageIcon className="h-4 w-4" />
-                            </button>
-                          )}
-                          
-                          {/* Trading Steps Validation Badge */}
-                          {(trade as any).trading_steps && (() => {
-                            try {
-                              const steps = JSON.parse((trade as any).trading_steps);
-                              const completedSteps = steps.filter((step: any) => step.completed).length;
-                              const totalSteps = steps.length;
-                              const percentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
-                              
-                              if (totalSteps > 0) {
-                                return (
-                                  <div
-                                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                      percentage === 100
-                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                                        : percentage >= 75
-                                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
-                                        : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                                    }`}
-                                    title={`Setup validation: ${completedSteps}/${totalSteps} criteria (${percentage}%)`}
-                                  >
-                                    <Target className="h-3 w-3 mr-1" />
-                                    {percentage}%
-                                  </div>
-                                );
-                              }
-                            } catch (e) {
-                              return null;
-                            }
-                            return null;
-                          })()}
-                          
-                          {/* Before/After Images */}
-                          {((trade as any).before_image || (trade as any).after_image) && (
-                            <button
-                              onClick={() => {
-                                // You can implement a modal to show before/after comparison
-                                console.log('Show before/after images for trade:', trade.id);
-                              }}
-                              className="text-purple-600 hover:text-purple-500 transition-colors p-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                              title="View before/after comparison"
-                            >
-                              <div className="flex items-center">
-                                <ImageIcon className="h-4 w-4" />
-                                <span className="text-xs ml-1">B/A</span>
-                              </div>
-                            </button>
-                          )}
-                          
-                          {/* Trading Steps Validation Badge */}
-                          {(trade as any).trading_steps && (() => {
-                            try {
-                              const steps = JSON.parse((trade as any).trading_steps);
-                              const completedSteps = steps.filter((step: any) => step.completed).length;
-                              const totalSteps = steps.length;
-                              const percentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
-                              
-                              if (totalSteps > 0) {
-                                return (
-                                  <div
-                                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                      percentage === 100
-                                        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                                        : percentage >= 75
-                                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
-                                        : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                                    }`}
-                                    title={`Setup validation: ${completedSteps}/${totalSteps} criteria (${percentage}%)`}
-                                  >
-                                    <Target className="h-3 w-3 mr-1" />
-                                    {percentage}%
-                                  </div>
-                                );
-                              }
-                            } catch (e) {
-                              return null;
-                            }
-                            return null;
-                          })()}
-                          
-                          {/* Before/After Images */}
-                          {((trade as any).before_image || (trade as any).after_image) && (
-                            <button
-                              onClick={() => {
-                                // You can implement a modal to show before/after comparison
-                                console.log('Show before/after images for trade:', trade.id);
-                              }}
-                              className="text-purple-600 hover:text-purple-500 transition-colors p-1 rounded hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                              title="View before/after comparison"
-                            >
-                              <div className="flex items-center">
-                                <ImageIcon className="h-4 w-4" />
-                                <span className="text-xs ml-1">B/A</span>
-                              </div>
-                            </button>
-                          )}
-                          
-                          <Link
-                            to={`/edit-trade/${trade.id}`}
-                            className="text-green-600 hover:text-green-500 transition-colors p-1 rounded hover:bg-green-50 dark:hover:bg-green-900/20"
-                            title="Edit trade"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Link>
-                          <button
-                            onClick={() => handleDelete(trade.id)}
-                            className="text-red-600 hover:text-red-500 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20"
-                            title="Delete trade"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                        
-                      </td>
-                    </tr>
+                    <TradeRow
+                      key={trade.id}
+                      trade={trade}
+                      onDelete={handleDelete}
+                      onImagePreview={handleImagePreview}
+                    />
                   ))}
                 </tbody>
               </table>

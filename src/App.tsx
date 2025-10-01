@@ -5,73 +5,86 @@ import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Landing } from './pages/Landing';
 import { AuthPage } from './pages/Auth';
-import { Dashboard } from './pages/Dashboard';
-import { AddTrade } from './pages/AddTrade';
-import { TradeLog } from './pages/TradeLog';
-import { EditTrade } from './pages/EditTrade';
-import { CompoundingChallenge } from './pages/CompoundingChallenge';
-import { RiskManager } from './pages/RiskManager';
-import { ForexSessions } from './pages/ForexSessions';
+import { LoadingSpinner } from './components/LoadingSpinner';
+
+// Lazy load components for better performance
+const Dashboard = React.lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
+const AddTrade = React.lazy(() => import('./pages/AddTrade').then(module => ({ default: module.AddTrade })));
+const TradeLog = React.lazy(() => import('./pages/TradeLog').then(module => ({ default: module.TradeLog })));
+const EditTrade = React.lazy(() => import('./pages/EditTrade').then(module => ({ default: module.EditTrade })));
+const CompoundingChallenge = React.lazy(() => import('./pages/CompoundingChallenge').then(module => ({ default: module.CompoundingChallenge })));
+const RiskManager = React.lazy(() => import('./pages/RiskManager').then(module => ({ default: module.RiskManager })));
+const ForexSessions = React.lazy(() => import('./pages/ForexSessions').then(module => ({ default: module.ForexSessions })));
+
+// Suspense fallback component
+const SuspenseFallback = () => (
+  <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
+    <LoadingSpinner size="lg" />
+    <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+  </div>
+);
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<AuthPage mode="login" />} />
-          <Route path="/register" element={<AuthPage mode="register" />} />
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Layout>
-                <Dashboard />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/add-trade" element={
-            <ProtectedRoute>
-              <Layout>
-                <AddTrade />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/trades" element={
-            <ProtectedRoute>
-              <Layout>
-                <TradeLog />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/edit-trade/:id" element={
-            <ProtectedRoute>
-              <Layout>
-                <EditTrade />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/compounding-challenge" element={
-            <ProtectedRoute>
-              <Layout>
-                <CompoundingChallenge />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/risk-manager" element={
-            <ProtectedRoute>
-              <Layout>
-                <RiskManager />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/forex-sessions" element={
-            <ProtectedRoute>
-              <Layout>
-                <ForexSessions />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <React.Suspense fallback={<SuspenseFallback />}>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<AuthPage mode="login" />} />
+            <Route path="/register" element={<AuthPage mode="register" />} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/add-trade" element={
+              <ProtectedRoute>
+                <Layout>
+                  <AddTrade />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/trades" element={
+              <ProtectedRoute>
+                <Layout>
+                  <TradeLog />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/edit-trade/:id" element={
+              <ProtectedRoute>
+                <Layout>
+                  <EditTrade />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/compounding-challenge" element={
+              <ProtectedRoute>
+                <Layout>
+                  <CompoundingChallenge />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/risk-manager" element={
+              <ProtectedRoute>
+                <Layout>
+                  <RiskManager />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/forex-sessions" element={
+              <ProtectedRoute>
+                <Layout>
+                  <ForexSessions />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </React.Suspense>
       </Router>
     </AuthProvider>
   );

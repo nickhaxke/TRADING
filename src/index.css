@@ -2,10 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Critical CSS - Load immediately */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 /* Smooth scrolling for better UX */
 html {
   scroll-behavior: smooth;
+  font-display: swap;
 }
+
+/* Preload critical fonts */
+@font-face {
+  font-family: 'Inter';
+  font-display: swap;
+  src: local('Inter');
+}
+
 /* Enhanced responsive utilities */
 /* Enhanced mobile viewport handling */
 @supports (-webkit-touch-callout: none) {
@@ -13,12 +32,25 @@ html {
     min-height: -webkit-fill-available;
   }
 }
+
+/* Performance optimizations */
+* {
+  box-sizing: border-box;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  loading: lazy;
+}
+
 @layer utilities {
 /* Better text rendering */
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-feature-settings: 'kern' 1;
 }
   .container-fluid {
     width: 100%;
@@ -67,4 +99,14 @@ body {
   .session-london { @apply bg-blue-500; }
   .session-newyork { @apply bg-green-500; }
   .session-overlap { @apply bg-yellow-500; }
+  
+  /* Performance utilities */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+  
+  .optimize-rendering {
+    contain: layout style paint;
+  }
 }
