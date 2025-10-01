@@ -11,6 +11,7 @@ import { TradeLog } from './pages/TradeLog';
 import { EditTrade } from './pages/EditTrade';
 import { CompoundingChallenge } from './pages/CompoundingChallenge';
 import { RiskManager } from './pages/RiskManager';
+import { ForexSessions } from './pages/ForexSessions';
 
 function App() {
   return (
@@ -59,6 +60,13 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <RiskManager />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/forex-sessions" element={
+            <ProtectedRoute>
+              <Layout>
+                <ForexSessions />
               </Layout>
             </ProtectedRoute>
           } />

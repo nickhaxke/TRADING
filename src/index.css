@@ -1,3 +1,70 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Smooth scrolling for better UX */
+html {
+  scroll-behavior: smooth;
+}
+/* Enhanced responsive utilities */
+/* Enhanced mobile viewport handling */
+@supports (-webkit-touch-callout: none) {
+  .min-h-screen {
+    min-height: -webkit-fill-available;
+  }
+}
+@layer utilities {
+/* Better text rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+  .container-fluid {
+    width: 100%;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  @screen sm {
+    .container-fluid {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
+  
+  @screen lg {
+    .container-fluid {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  
+  @screen xl {
+    .container-fluid {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+  
+  /* Touch-friendly interactive elements */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improved focus states for accessibility */
+  .focus-visible {
+    outline: 2px solid theme('colors.blue.500');
+    outline-offset: 2px;
+  }
+  
+  /* Session-specific colors */
+  .session-sydney { @apply bg-red-500; }
+  .session-tokyo { @apply bg-teal-500; }
+  .session-london { @apply bg-blue-500; }
+  .session-newyork { @apply bg-green-500; }
+  .session-overlap { @apply bg-yellow-500; }
+}

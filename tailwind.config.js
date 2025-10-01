@@ -6,6 +6,9 @@ export default {
     extend: {
       screens: {
         'xs': '475px',
+        'xxs': '320px',
+        '3xl': '1600px',
+        '4xl': '1920px',
       },
       colors: {
         primary: {
@@ -44,6 +47,13 @@ export default {
           800: '#991b1b',
           900: '#7f1d1d',
         },
+        session: {
+          sydney: '#FF6B6B',
+          tokyo: '#4ECDC4',
+          london: '#45B7D1',
+          newyork: '#96CEB4',
+          overlap: '#FFEAA7',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -52,15 +62,20 @@ export default {
         '72': '18rem',
         '84': '21rem',
         '96': '24rem',
+        '128': '32rem',
+        '144': '36rem',
       },
       maxWidth: {
         '8xl': '88rem',
         '9xl': '96rem',
+        '10xl': '120rem',
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'bounce-subtle': 'bounceSubtle 2s infinite',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'spin-slow': 'spin 3s linear infinite',
       },
       keyframes: {
         fadeIn: {
@@ -74,6 +89,16 @@ export default {
         bounceSubtle: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-5px)' },
+        },
+      },
+      container: {
+        center: true,
+        padding: {
+          DEFAULT: '1rem',
+          sm: '2rem',
+          lg: '4rem',
+          xl: '5rem',
+          '2xl': '6rem',
         },
       },
     },
