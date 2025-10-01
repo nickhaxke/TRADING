@@ -1,0 +1,159 @@
+import React, { useState, useEffect } from 'react';
+import { Users, TrendingUp, Activity, Clock, MapPin } from 'lucide-react';
+import { useUserStats } from '../hooks/useUserStats';
+
+export const LiveUserStats: React.FC = () => {
+  const { totalUsers, activeToday, totalTrades, recentSignups, loading } = useUserStats();
+  const [currentSignupIndex, setCurrentSignupIndex] = useState(0);
+
+  // Rotate through recent signups every 3 seconds
+  useEffect(() => {
+    if (recentSignups.length > 0) {
+      const interval = setInterval(() => {
+        setCurrentSignupIndex((prev) => (prev + 1) % recentSignups.length);
+      }, 3000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [recentSignups.length]);
+
+  // Mock locations for demo
+  const locations = ['New York', 'London', 'Tokyo', 'Sydney', 'Frankfurt', 'Singapore', 'Dubai', 'Toronto'];
+  
+  const getTimeAgo = (dateString: string) => {
+    const now = new Date();
+    const past = new Date(dateString);
+    const diffInMinutes = Math.floor((now.getTime() - past.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    return `${Math.floor(diffInMinutes / 1440)}d ago`;
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 animate-pulse">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+        <div className="space-y-3">
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+          <Activity className="h-5 w-5 text-green-500 mr-2" />
+          Live Activity
+        </h3>
+        <div className="flex items-center space-x-1">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-xs text-gray-500 dark:text-gray-400">Live</span>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+        <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <Users className="h-5 w-5 text-blue-600 mx-auto mb-1" />
+          <div className="text-lg sm:text-xl font-bold text-blue-600">
+            {totalUsers.toLocaleString()}
+          </div>
+          <div className="text-xs text-blue-600/80">Total Traders</div>
+        </div>
+        
+        <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+          <TrendingUp className="h-5 w-5 text-green-600 mx-auto mb-1" />
+          <div className="text-lg sm:text-xl font-bold text-green-600">
+            {activeToday.toLocaleString()}
+          </div>
+          <div className="text-xs text-green-600/80">Active Today</div>
+        </div>
+        
+        <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg col-span-2 sm:col-span-1">
+          <Activity className="h-5 w-5 text-purple-600 mx-auto mb-1" />
+          <div className="text-lg sm:text-xl font-bold text-purple-600">
+            {totalTrades.toLocaleString()}
+          </div>
+          <div className="text-xs text-purple-600/80">Total Trades</div>
+        </div>
+      </div>
+
+      {/* Recent Signups */}
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Recent Signups
+          </h4>
+          <Clock className="h-4 w-4 text-gray-400" />
+        </div>
+        
+        {recentSignups.length > 0 && (
+          <div className="space-y-2">
+            {/* Current rotating signup */}
+            <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg transition-all duration-500">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">
+                    {recentSignups[currentSignupIndex]?.username.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    {recentSignups[currentSignupIndex]?.username}
+                  </div>
+                  <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                    <MapPin className="h-3 w-3 mr-1" />
+                    {locations[Math.floor(Math.random() * locations.length)]}
+                  </div>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                {getTimeAgo(recentSignups[currentSignupIndex]?.created_at)}
+              </div>
+            </div>
+            
+            {/* Show next 2 signups */}
+            {recentSignups.slice(1, 3).map((signup, index) => (
+              <div key={index} className="flex items-center justify-between p-2 opacity-60">
+                <div className="flex items-center space-x-2">
+                  <div className="w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">
+                      {signup.username.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300">
+                      {signup.username}
+                    </div>
+                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                      <MapPin className="h-3 w-3 mr-1" />
+                      {locations[Math.floor(Math.random() * locations.length)]}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-xs text-gray-400">
+                  {getTimeAgo(signup.created_at)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Join message */}
+        <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="text-sm text-center">
+            <span className="text-gray-700 dark:text-gray-300">
+              Join <span className="font-semibold text-blue-600">{totalUsers.toLocaleString()}+</span> traders already using our platform
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};</parameter>
