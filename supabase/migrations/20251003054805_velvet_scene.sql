@@ -145,14 +145,7 @@ CREATE POLICY "Users can update own profile"
   FOR UPDATE
   TO authenticated
   USING (auth.uid() = user_id)
-  WITH CHECK (
-    auth.uid() = user_id AND
-    (OLD.role = NEW.role OR EXISTS (
-      SELECT 1 FROM user_profiles up 
-      WHERE up.user_id = auth.uid() 
-      AND up.role = 'admin'
-    ))
-  );
+  WITH CHECK (auth.uid() = user_id);
 
 -- Admins can update any profile
 CREATE POLICY "Admins can update any profile"
@@ -198,6 +191,34 @@ CREATE POLICY "Admins can manage admin users"
       AND up.role = 'admin'
     )
   );
+
+-- Function to prevent non-admins from changing their role
+CREATE OR REPLACE FUNCTION prevent_role_change()
+RETURNS trigger AS $$
+DECLARE
+  is_admin boolean;
+BEGIN
+  -- Check if the user making the change is an admin
+  SELECT EXISTS (
+    SELECT 1 FROM user_profiles
+    WHERE user_id = auth.uid()
+    AND role = 'admin'
+  ) INTO is_admin;
+
+  -- If role is being changed and user is not admin, prevent the change
+  IF OLD.role IS DISTINCT FROM NEW.role AND NOT is_admin THEN
+    NEW.role := OLD.role;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create trigger to enforce role protection
+DROP TRIGGER IF EXISTS enforce_role_protection ON user_profiles;
+CREATE TRIGGER enforce_role_protection
+  BEFORE UPDATE ON user_profiles
+  FOR EACH ROW EXECUTE FUNCTION prevent_role_change();
 
 -- Function to automatically create user profile on signup
 CREATE OR REPLACE FUNCTION handle_new_user()
