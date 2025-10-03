@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Moon, Sun, LogOut, Home, BarChart2, PlusSquare, List, Target, Calculator, Clock, Menu, X } from 'lucide-react';
+import { Moon, Sun, LogOut, Home, BarChart2, PlusSquare, List, Target, Calculator, Clock, Menu, X, Shield } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useAuth } from '../contexts/AuthContext';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,8 +12,32 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { isDark, toggleTheme } = useTheme();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (data && data.role === 'admin') {
+          setIsAdmin(true);
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+      }
+    };
+    
+    checkAdminStatus();
+  }, [user]);
 
   const handleSignOut = async () => {
     try {
@@ -21,7 +47,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   };
 
-  const navigationItems = [
+  let navigationItems = [
     { to: '/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/add-trade', icon: PlusSquare, label: 'Add Trade' },
     { to: '/trades', icon: List, label: 'Trade Log' },
@@ -29,6 +55,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { to: '/risk-manager', icon: Calculator, label: 'Risk Manager' },
     { to: '/forex-sessions', icon: Clock, label: 'Sessions' },
   ];
+
+  // Add admin route if user is admin
+  if (isAdmin) {
+    navigationItems.push({ to: '/admin', icon: Shield, label: 'Admin' });
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <header className="bg-white dark:bg-gray-800 shadow-sm">

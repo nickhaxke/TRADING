@@ -40,6 +40,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Update last login when user signs in
+        if (event === 'SIGNED_IN' && session?.user) {
+          try {
+            await supabase
+              .from('user_profiles')
+              .upsert({
+                user_id: session.user.id,
+                username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User',
+                last_login: new Date().toISOString()
+              }, {
+                onConflict: 'user_id'
+              });
+          } catch (error) {
+            console.error('Error updating user profile:', error);
+          }
+        }
       }
     );
 

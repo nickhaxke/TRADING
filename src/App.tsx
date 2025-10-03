@@ -15,6 +15,7 @@ const EditTrade = React.lazy(() => import('./pages/EditTrade').then(module => ({
 const CompoundingChallenge = React.lazy(() => import('./pages/CompoundingChallenge').then(module => ({ default: module.CompoundingChallenge })));
 const RiskManager = React.lazy(() => import('./pages/RiskManager').then(module => ({ default: module.RiskManager })));
 const ForexSessions = React.lazy(() => import('./pages/ForexSessions').then(module => ({ default: module.ForexSessions })));
+const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
 
 // Suspense fallback component
 const SuspenseFallback = () => (
@@ -79,6 +80,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <ForexSessions />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <Layout>
+                  <AdminDashboard />
                 </Layout>
               </ProtectedRoute>
             } />
