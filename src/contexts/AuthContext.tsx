@@ -46,15 +46,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           try {
             await supabase
               .from('user_profiles')
-              .upsert({
-                user_id: session.user.id,
-                username: session.user.user_metadata?.username || session.user.email?.split('@')[0] || 'User',
+              .update({
                 last_login: new Date().toISOString()
-              }, {
-                onConflict: 'user_id'
-              });
+              })
+              .eq('user_id', session.user.id);
           } catch (error) {
-            console.error('Error updating user profile:', error);
+            console.error('Error updating last login:', error);
           }
         }
       }
@@ -64,14 +61,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string, username: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { username }
+        data: { username },
+        emailRedirectTo: `${window.location.origin}/dashboard`
       }
     });
     if (error) throw error;
+
+    // If email confirmation is disabled, user will be logged in immediately
+    // Otherwise, they need to verify their email first
+    return data;
   };
 
   const signIn = async (email: string, password: string) => {

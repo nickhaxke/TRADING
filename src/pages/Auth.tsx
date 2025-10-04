@@ -14,6 +14,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [verificationSent, setVerificationSent] = useState(false);
   
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
@@ -22,14 +23,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setVerificationSent(false);
 
     try {
       if (mode === 'register') {
         await signUp(email, password, username);
+        setVerificationSent(true);
       } else {
         await signIn(email, password);
+        navigate('/dashboard');
       }
-      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'An error occurred');
     } finally {
@@ -70,6 +73,21 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode }) => {
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-md text-sm">
               {error}
+            </div>
+          )}
+
+          {verificationSent && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 px-4 py-3 rounded-md">
+              <div className="flex items-start">
+                <Mail className="h-5 w-5 mr-2 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold mb-1">Verify your email address</h3>
+                  <p className="text-sm">
+                    We've sent a verification link to <span className="font-medium">{email}</span>.
+                    Please check your inbox and click the link to activate your account.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
           
