@@ -36,24 +36,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-        
-        // Update last login when user signs in
-        if (event === 'SIGNED_IN' && session?.user) {
-          try {
-            await supabase
-              .from('user_profiles')
-              .update({
-                last_login: new Date().toISOString()
-              })
-              .eq('user_id', session.user.id);
-          } catch (error) {
-            console.error('Error updating last login:', error);
-          }
-        }
+      (event, session) => {
+        (async () => {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        })();
       }
     );
 
