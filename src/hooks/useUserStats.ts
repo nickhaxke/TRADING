@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 
 interface UserProfile {
   id: string;
+  user_id: string;
   username: string;
   role: 'admin' | 'user' | 'premium';
   status: 'active' | 'inactive' | 'suspended';
@@ -56,7 +57,7 @@ export const useUserStats = () => {
       // Get recent signups (last 15 users)
       const { data: recentSignups } = await supabase
         .from('user_profiles')
-        .select('id, username, role, status, country, created_at, last_login, profile_completed')
+        .select('id, user_id, username, role, status, country, created_at, last_login, profile_completed')
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(15);
@@ -94,16 +95,16 @@ export const useUserStats = () => {
       console.error('Error fetching user stats:', error);
       // Set realistic mock data if there's an error
       const mockUsers: UserProfile[] = [
-        { id: '1', username: 'TraderPro2024', role: 'premium', status: 'active', country: 'United States', created_at: new Date().toISOString(), last_login: new Date().toISOString(), profile_completed: true },
-        { id: '2', username: 'ForexMaster', role: 'user', status: 'active', country: 'United Kingdom', created_at: new Date(Date.now() - 300000).toISOString(), last_login: new Date(Date.now() - 100000).toISOString(), profile_completed: true },
-        { id: '3', username: 'PipHunter', role: 'user', status: 'active', country: 'Germany', created_at: new Date(Date.now() - 600000).toISOString(), last_login: new Date(Date.now() - 200000).toISOString(), profile_completed: true },
-        { id: '4', username: 'TradingGuru', role: 'premium', status: 'active', country: 'Japan', created_at: new Date(Date.now() - 900000).toISOString(), last_login: new Date(Date.now() - 300000).toISOString(), profile_completed: false },
-        { id: '5', username: 'MarketAnalyst', role: 'user', status: 'active', country: 'Australia', created_at: new Date(Date.now() - 1200000).toISOString(), last_login: new Date(Date.now() - 400000).toISOString(), profile_completed: true },
-        { id: '6', username: 'CryptoKing', role: 'user', status: 'active', country: 'Canada', created_at: new Date(Date.now() - 1500000).toISOString(), last_login: new Date(Date.now() - 500000).toISOString(), profile_completed: true },
-        { id: '7', username: 'SwingTrader', role: 'premium', status: 'active', country: 'France', created_at: new Date(Date.now() - 1800000).toISOString(), last_login: new Date(Date.now() - 600000).toISOString(), profile_completed: false },
-        { id: '8', username: 'DayTrader99', role: 'user', status: 'active', country: 'Singapore', created_at: new Date(Date.now() - 2100000).toISOString(), last_login: new Date(Date.now() - 700000).toISOString(), profile_completed: true },
-        { id: '9', username: 'ScalpMaster', role: 'user', status: 'active', country: 'Switzerland', created_at: new Date(Date.now() - 2400000).toISOString(), last_login: new Date(Date.now() - 800000).toISOString(), profile_completed: true },
-        { id: '10', username: 'TrendFollower', role: 'premium', status: 'active', country: 'Netherlands', created_at: new Date(Date.now() - 2700000).toISOString(), last_login: new Date(Date.now() - 900000).toISOString(), profile_completed: true },
+        { id: '1', user_id: '1', username: 'TraderPro2024', role: 'premium', status: 'active', country: 'United States', created_at: new Date().toISOString(), last_login: new Date().toISOString(), profile_completed: true },
+        { id: '2', user_id: '2', username: 'ForexMaster', role: 'user', status: 'active', country: 'United Kingdom', created_at: new Date(Date.now() - 300000).toISOString(), last_login: new Date(Date.now() - 100000).toISOString(), profile_completed: true },
+        { id: '3', user_id: '3', username: 'PipHunter', role: 'user', status: 'active', country: 'Germany', created_at: new Date(Date.now() - 600000).toISOString(), last_login: new Date(Date.now() - 200000).toISOString(), profile_completed: true },
+        { id: '4', user_id: '4', username: 'TradingGuru', role: 'premium', status: 'active', country: 'Japan', created_at: new Date(Date.now() - 900000).toISOString(), last_login: new Date(Date.now() - 300000).toISOString(), profile_completed: false },
+        { id: '5', user_id: '5', username: 'MarketAnalyst', role: 'user', status: 'active', country: 'Australia', created_at: new Date(Date.now() - 1200000).toISOString(), last_login: new Date(Date.now() - 400000).toISOString(), profile_completed: true },
+        { id: '6', user_id: '6', username: 'CryptoKing', role: 'user', status: 'active', country: 'Canada', created_at: new Date(Date.now() - 1500000).toISOString(), last_login: new Date(Date.now() - 500000).toISOString(), profile_completed: true },
+        { id: '7', user_id: '7', username: 'SwingTrader', role: 'premium', status: 'active', country: 'France', created_at: new Date(Date.now() - 1800000).toISOString(), last_login: new Date(Date.now() - 600000).toISOString(), profile_completed: false },
+        { id: '8', user_id: '8', username: 'DayTrader99', role: 'user', status: 'active', country: 'Singapore', created_at: new Date(Date.now() - 2100000).toISOString(), last_login: new Date(Date.now() - 700000).toISOString(), profile_completed: true },
+        { id: '9', user_id: '9', username: 'ScalpMaster', role: 'user', status: 'active', country: 'Switzerland', created_at: new Date(Date.now() - 2400000).toISOString(), last_login: new Date(Date.now() - 800000).toISOString(), profile_completed: true },
+        { id: '10', user_id: '10', username: 'TrendFollower', role: 'premium', status: 'active', country: 'Netherlands', created_at: new Date(Date.now() - 2700000).toISOString(), last_login: new Date(Date.now() - 900000).toISOString(), profile_completed: true },
       ];
 
       setStats({
@@ -156,10 +157,10 @@ export const useUserManagement = () => {
       const { error } = await supabase
         .from('user_profiles')
         .update({ role })
-        .eq('user_id', userId);
+        .eq('id', userId);
 
       if (error) throw error;
-      await fetchAllUsers(); // Refresh the list
+      await fetchAllUsers();
     } catch (error) {
       console.error('Error updating user role:', error);
       throw error;
@@ -171,10 +172,10 @@ export const useUserManagement = () => {
       const { error } = await supabase
         .from('user_profiles')
         .update({ status })
-        .eq('user_id', userId);
+        .eq('id', userId);
 
       if (error) throw error;
-      await fetchAllUsers(); // Refresh the list
+      await fetchAllUsers();
     } catch (error) {
       console.error('Error updating user status:', error);
       throw error;
