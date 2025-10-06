@@ -20,22 +20,30 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!user) return;
-      
+
       try {
         const { data, error } = await supabase
           .from('user_profiles')
           .select('role')
           .eq('user_id', user.id)
-          .single();
-        
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error checking admin status:', error);
+          return;
+        }
+
         if (data && data.role === 'admin') {
           setIsAdmin(true);
+        } else {
+          console.log('User profile data:', data);
+          console.log('User is not admin or profile not found');
         }
       } catch (error) {
         console.error('Error checking admin status:', error);
       }
     };
-    
+
     checkAdminStatus();
   }, [user]);
 
