@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { Landing } from './pages/Landing';
 import { AuthPage } from './pages/Auth';
 import { LoadingSpinner } from './components/LoadingSpinner';
@@ -29,6 +30,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <PWAInstallPrompt />
         <React.Suspense fallback={<SuspenseFallback />}>
           <Routes>
             <Route path="/" element={<Landing />} />

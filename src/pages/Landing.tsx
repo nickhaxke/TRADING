@@ -1,8 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { TrendingUp, BarChart3, FileText, Shield, Zap, Download } from 'lucide-react';
-import { LiveUserStats } from '../components/LiveUserStats';
-import { TradingStats } from '../components/TradingStats';
 
 export const Landing: React.FC = () => {
   return (
@@ -37,23 +35,6 @@ export const Landing: React.FC = () => {
         </div>
 
         <div className="py-12 sm:py-16">
-          {/* Live User Stats Section */}
-          <div className="mb-12 sm:mb-16">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                Join Thousands of Successful Traders
-              </h2>
-              <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                Real traders, real results. See what our community is achieving right now.
-              </p>
-            </div>
-            
-            <div className="grid lg:grid-cols-2 gap-8 items-start px-4">
-              <LiveUserStats />
-              <TradingStats />
-            </div>
-          </div>
-
           <div className="text-center mb-8 sm:mb-12 px-4">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
               Everything you need to track your trades

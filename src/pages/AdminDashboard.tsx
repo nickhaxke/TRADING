@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import { useUserManagement } from '../hooks/useUserStats';
-import { 
-  Users, 
-  Crown, 
-  Shield, 
-  Ban, 
-  CheckCircle, 
-  XCircle, 
+import {
+  Users,
+  Crown,
+  Shield,
+  Ban,
+  CheckCircle,
+  XCircle,
   Search,
   Filter,
   MoreVertical,
   MapPin,
   Calendar,
-  Activity
+  Activity,
+  X,
+  Mail,
+  Phone,
+  Info
 } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 
@@ -21,6 +25,8 @@ export const AdminDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'user' | 'premium'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'suspended'>('all');
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [showUserModal, setShowUserModal] = useState(false);
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -309,8 +315,14 @@ export const AdminDashboard: React.FC = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                      <MoreVertical className="h-4 w-4" />
+                    <button
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setShowUserModal(true);
+                      }}
+                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                    >
+                      <Info className="h-5 w-5" />
                     </button>
                   </td>
                 </tr>
@@ -326,6 +338,188 @@ export const AdminDashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* User Details Modal */}
+      {showUserModal && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                User Details
+              </h2>
+              <button
+                onClick={() => {
+                  setShowUserModal(false);
+                  setSelectedUser(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* User Header */}
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-2xl font-bold text-white">
+                    {selectedUser.username.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    {selectedUser.username}
+                  </h3>
+                  <div className="flex items-center space-x-2 mt-1">
+                    {getRoleIcon(selectedUser.role)}
+                    <span className="text-sm text-gray-600 dark:text-gray-400 capitalize">
+                      {selectedUser.role}
+                    </span>
+                    {getStatusIcon(selectedUser.status)}
+                    <span className="text-sm text-gray-600 dark:text-gray-400 capitalize">
+                      {selectedUser.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* User Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      User ID
+                    </label>
+                    <p className="text-sm text-gray-900 dark:text-white font-mono bg-gray-100 dark:bg-gray-700 p-2 rounded">
+                      {selectedUser.user_id}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Location
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-gray-400" />
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedUser.country || 'Not specified'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Profile Status
+                    </label>
+                    <p className="text-sm text-gray-900 dark:text-white">
+                      {selectedUser.profile_completed ? (
+                        <span className="text-green-600 flex items-center">
+                          <CheckCircle className="h-4 w-4 mr-1" /> Complete
+                        </span>
+                      ) : (
+                        <span className="text-yellow-600 flex items-center">
+                          <XCircle className="h-4 w-4 mr-1" /> Incomplete
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Account Created
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {new Date(selectedUser.created_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Last Login
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <Activity className="h-4 w-4 text-gray-400" />
+                      <p className="text-sm text-gray-900 dark:text-white">
+                        {selectedUser.last_login
+                          ? `${getTimeAgo(selectedUser.last_login)} (${new Date(selectedUser.last_login).toLocaleString()})`
+                          : 'Never'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Quick Actions
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Change Role
+                    </label>
+                    <select
+                      value={selectedUser.role}
+                      onChange={(e) => {
+                        handleRoleChange(selectedUser.id, e.target.value as any);
+                        setSelectedUser({ ...selectedUser, role: e.target.value });
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="user">User</option>
+                      <option value="premium">Premium</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Change Status
+                    </label>
+                    <select
+                      value={selectedUser.status}
+                      onChange={(e) => {
+                        handleStatusChange(selectedUser.id, e.target.value as any);
+                        setSelectedUser({ ...selectedUser, status: e.target.value });
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="suspended">Suspended</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Support Notes */}
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Admin Notes
+                </h4>
+                <textarea
+                  placeholder="Add notes about this user for admin reference..."
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  rows={4}
+                />
+                <button className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                  Save Notes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
