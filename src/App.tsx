@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { AdminRoute } from './components/AdminRoute';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { Landing } from './pages/Landing';
 import { AuthPage } from './pages/Auth';
@@ -88,11 +87,9 @@ function App() {
             } />
             <Route path="/admin" element={
               <ProtectedRoute>
-                <AdminRoute>
-                  <Layout>
-                    <AdminDashboard />
-                  </Layout>
-                </AdminRoute>
+                <Layout>
+                  <AdminDashboard />
+                </Layout>
               </ProtectedRoute>
             } />
             <Route path="*" element={<Navigate to="/" replace />} />
