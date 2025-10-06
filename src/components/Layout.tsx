@@ -98,7 +98,18 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               >
                 {isDark ? <Sun className="h-4 w-4 sm:h-5 sm:w-5" /> : <Moon className="h-4 w-4 sm:h-5 sm:w-5" />}
               </button>
-              
+
+              {/* Admin Link - Desktop (only for admins) */}
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className="hidden sm:flex px-2 sm:px-3 py-1.5 sm:py-2 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 transition-colors items-center"
+                >
+                  <Shield className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  <span className="hidden md:inline">Admin</span>
+                </Link>
+              )}
+
               {/* Sign Out - Desktop */}
               <button
                 onClick={handleSignOut}
