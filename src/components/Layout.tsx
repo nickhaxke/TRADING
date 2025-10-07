@@ -21,11 +21,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     const checkAdminStatus = async () => {
       if (!user) return;
 
-      // TEMPORARY: Allow all logged-in users to access admin panel
-      // Remove this after setting up proper admin roles in database
-      setIsAdmin(true);
-      console.log('TEMPORARY ADMIN ACCESS: All users can access admin panel');
-
       try {
         const { data, error } = await supabase
           .from('user_profiles')
@@ -40,10 +35,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         if (data && data.role === 'admin') {
           setIsAdmin(true);
-          console.log('User is confirmed admin via database');
-        } else {
-          console.log('User profile data:', data);
-          console.log('User is not admin in database, but temporary access granted');
         }
       } catch (error) {
         console.error('Error checking admin status:', error);
