@@ -16,9 +16,14 @@ import {
   X,
   Mail,
   Phone,
-  Info
+  Info,
+  KeyRound,
+  UserCheck,
+  TrendingUp
 } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
+import { supabase } from '../lib/supabase';
+import { Link } from 'react-router-dom';
 
 export const AdminDashboard: React.FC = () => {
   const { users, loading, updateUserRole, updateUserStatus } = useUserManagement();
@@ -27,6 +32,8 @@ export const AdminDashboard: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'suspended'>('all');
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionMessage, setActionMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -50,6 +57,46 @@ export const AdminDashboard: React.FC = () => {
       await updateUserStatus(userId, newStatus);
     } catch (error) {
       console.error('Failed to update user status:', error);
+    }
+  };
+
+  const handleVerifyUser = async (userId: string) => {
+    setActionLoading(true);
+    setActionMessage(null);
+    try {
+      const { error } = await supabase.auth.admin.updateUserById(userId, {
+        email_confirm: true
+      });
+
+      if (error) throw error;
+
+      setActionMessage({ type: 'success', text: 'User verified successfully!' });
+      setTimeout(() => setActionMessage(null), 3000);
+    } catch (error: any) {
+      setActionMessage({ type: 'error', text: error.message || 'Failed to verify user' });
+      setTimeout(() => setActionMessage(null), 3000);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (userId: string, email: string) => {
+    setActionLoading(true);
+    setActionMessage(null);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+
+      if (error) throw error;
+
+      setActionMessage({ type: 'success', text: 'Password reset email sent successfully!' });
+      setTimeout(() => setActionMessage(null), 3000);
+    } catch (error: any) {
+      setActionMessage({ type: 'error', text: error.message || 'Failed to send reset email' });
+      setTimeout(() => setActionMessage(null), 3000);
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -108,7 +155,25 @@ export const AdminDashboard: React.FC = () => {
             Manage users, roles, and platform settings
           </p>
         </div>
+        <Link
+          to="/admin/signals"
+          className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
+        >
+          <TrendingUp className="h-5 w-5 mr-2" />
+          Manage Signals
+        </Link>
       </div>
+
+      {/* Action Message */}
+      {actionMessage && (
+        <div className={`p-4 rounded-lg ${
+          actionMessage.type === 'success'
+            ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
+            : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
+        }`}>
+          <p className="font-medium">{actionMessage.text}</p>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -499,6 +564,26 @@ export const AdminDashboard: React.FC = () => {
                       <option value="suspended">Suspended</option>
                     </select>
                   </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    onClick={() => handleVerifyUser(selectedUser.user_id)}
+                    disabled={actionLoading}
+                    className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <UserCheck className="h-4 w-4 mr-2" />
+                    {actionLoading ? 'Processing...' : 'Verify User Email'}
+                  </button>
+
+                  <button
+                    onClick={() => handleResetPassword(selectedUser.user_id, selectedUser.username + '@example.com')}
+                    disabled={actionLoading}
+                    className="flex items-center justify-center px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <KeyRound className="h-4 w-4 mr-2" />
+                    {actionLoading ? 'Processing...' : 'Send Password Reset'}
+                  </button>
                 </div>
               </div>
 

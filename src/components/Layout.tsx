@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Moon, Sun, LogOut, Home, BarChart2, PlusSquare, List, Target, Calculator, Clock, Menu, X, Shield } from 'lucide-react';
+import { Moon, Sun, LogOut, Home, BarChart2, PlusSquare, List, Target, Calculator, Clock, Menu, X, Shield, TrendingUp } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
@@ -56,6 +56,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { to: '/dashboard', icon: Home, label: 'Dashboard' },
     { to: '/add-trade', icon: PlusSquare, label: 'Add Trade' },
     { to: '/trades', icon: List, label: 'Trade Log' },
+    { to: '/signals', icon: TrendingUp, label: 'Signals' },
     { to: '/compounding-challenge', icon: Target, label: 'Challenge' },
     { to: '/risk-manager', icon: Calculator, label: 'Risk Manager' },
     { to: '/forex-sessions', icon: Clock, label: 'Sessions' },
