@@ -3,6 +3,7 @@ import { TrendingUp, TrendingDown, Clock, Target, AlertCircle, Crown, Lock } fro
 import { supabase } from '../lib/supabase';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { useAuth } from '../contexts/AuthContext';
+import { Link } from 'react-router-dom';
 
 interface Signal {
   id: string;
@@ -124,10 +125,10 @@ export const Signals: React.FC = () => {
         </div>
 
         {userRole === 'user' && (
-          <button className="flex items-center px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 transition-all shadow-md hover:shadow-lg">
+          <Link to="/upgrade" className="flex items-center px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 transition-all shadow-md hover:shadow-lg">
             <Crown className="h-5 w-5 mr-2" />
             Upgrade to Premium
-          </button>
+          </Link>
         )}
       </div>
 
@@ -221,10 +222,10 @@ export const Signals: React.FC = () => {
                     <p className="text-gray-600 dark:text-gray-400 text-center">
                       Premium Signal - Upgrade to view
                     </p>
-                    <button className="flex items-center px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 transition-all text-sm">
+                    <Link to="/upgrade" className="flex items-center px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 transition-all text-sm">
                       <Crown className="h-4 w-4 mr-2" />
                       Upgrade Now
-                    </button>
+                    </Link>
                   </div>
                 ) : (
                   <>

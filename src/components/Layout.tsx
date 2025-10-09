@@ -54,7 +54,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   let navigationItems = [
     { to: '/dashboard', icon: Home, label: 'Dashboard' },
-    { to: '/add-trade', icon: PlusSquare, label: 'Add Trade' },
     { to: '/trades', icon: List, label: 'Trade Log' },
     { to: '/signals', icon: TrendingUp, label: 'Signals' },
     { to: '/compounding-challenge', icon: Target, label: 'Challenge' },

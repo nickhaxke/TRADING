@@ -19,7 +19,9 @@ import {
   Info,
   KeyRound,
   UserCheck,
-  TrendingUp
+  TrendingUp,
+  Settings,
+  DollarSign
 } from 'lucide-react';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { supabase } from '../lib/supabase';
@@ -155,13 +157,29 @@ export const AdminDashboard: React.FC = () => {
             Manage users, roles, and platform settings
           </p>
         </div>
-        <Link
-          to="/admin/signals"
-          className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
-        >
-          <TrendingUp className="h-5 w-5 mr-2" />
-          Manage Signals
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/admin/signals"
+            className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
+          >
+            <TrendingUp className="h-5 w-5 mr-2" />
+            <span className="hidden sm:inline">Signals</span>
+          </Link>
+          <Link
+            to="/admin/pricing"
+            className="flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg"
+          >
+            <DollarSign className="h-5 w-5 mr-2" />
+            <span className="hidden sm:inline">Pricing</span>
+          </Link>
+          <Link
+            to="/admin/settings"
+            className="flex items-center px-4 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg hover:from-gray-700 hover:to-gray-800 transition-all shadow-md hover:shadow-lg"
+          >
+            <Settings className="h-5 w-5 mr-2" />
+            <span className="hidden sm:inline">Settings</span>
+          </Link>
+        </div>
       </div>
 
       {/* Action Message */}

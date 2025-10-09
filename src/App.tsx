@@ -19,6 +19,9 @@ const ForexSessions = React.lazy(() => import('./pages/ForexSessions').then(modu
 const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
 const Signals = React.lazy(() => import('./pages/Signals').then(module => ({ default: module.Signals })));
 const AdminSignals = React.lazy(() => import('./pages/AdminSignals').then(module => ({ default: module.AdminSignals })));
+const Upgrade = React.lazy(() => import('./pages/Upgrade').then(module => ({ default: module.Upgrade })));
+const AdminSettings = React.lazy(() => import('./pages/AdminSettings').then(module => ({ default: module.AdminSettings })));
+const AdminPricing = React.lazy(() => import('./pages/AdminPricing').then(module => ({ default: module.AdminPricing })));
 
 // Suspense fallback component
 const SuspenseFallback = () => (
@@ -105,6 +108,27 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Signals />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/upgrade" element={
+              <ProtectedRoute>
+                <Layout>
+                  <Upgrade />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/settings" element={
+              <ProtectedRoute>
+                <Layout>
+                  <AdminSettings />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/pricing" element={
+              <ProtectedRoute>
+                <Layout>
+                  <AdminPricing />
                 </Layout>
               </ProtectedRoute>
             } />
